@@ -1,0 +1,1316 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clef Moderation Review</title>
+<style>
+:root { --bg:#fff; --fg:#1d1d1f; --muted:#6b6b70; --line:#e5e5ea; --soft:#f6f6f8;
+  --ok:#1f7a3a; --okbg:#e3f4e8; --tox:#b42318; --toxbg:#fdeceb; --spam:#8a5100; --spambg:#fff3dc; --accent:#3655d4; }
+@media (prefers-color-scheme: dark) { :root { --bg:#16161a; --fg:#ececf1; --muted:#9a9aa3; --line:#2c2c33; --soft:#1e1e24;
+  --ok:#5fd38a; --okbg:#173322; --tox:#ff8a80; --toxbg:#3a1a19; --spam:#ffc266; --spambg:#3a2c12; --accent:#8ea2ff; } }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; margin:0; padding:16px; }
+.wrap { max-width:1200px; margin:0 auto; }
+h1 { font-size:22px; margin:0 0 4px; }
+.sub { color:var(--muted); margin-bottom:8px; }
+.how { background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:14px; margin:8px 0; }
+.how kbd { border:1px solid var(--line); border-radius:4px; padding:0 4px; font-size:12px; background:var(--bg); }
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; position:sticky; top:0; background:var(--bg);
+  padding:8px 0; border-bottom:1px solid var(--line); z-index:2; }
+button { font:inherit; font-size:14px; border:1px solid var(--line); background:var(--soft); color:var(--fg);
+  border-radius:999px; padding:4px 12px; cursor:pointer; }
+button.on { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+button.primary { background:var(--accent); color:#fff; border-color:var(--accent); margin-left:auto; }
+#progress { color:var(--muted); font-size:14px; }
+#meter { flex-basis:100%; height:4px; background:var(--line); border-radius:2px; overflow:hidden; }
+#meter span { display:block; height:100%; width:0; background:var(--accent); }
+table { width:100%; border-collapse:collapse; margin-top:4px; }
+th { text-align:left; font-size:13px; color:var(--muted); font-weight:600; padding:8px 6px; border-bottom:1px solid var(--line); }
+td { border-bottom:1px solid var(--line); padding:10px 6px; vertical-align:top; }
+tr.changed td { background:var(--soft); }
+tr.cur td { box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent); }
+tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent), inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent); }
+tr:focus { outline:none; }
+.id { color:var(--muted); width:34px; text-align:right; }
+tr.done .id::after { content:" ✓"; color:var(--ok); }
+.meta { color:var(--muted); font-size:13px; margin-bottom:2px; }
+.flags { margin-top:4px; }
+.flag { display:inline-block; font-size:12px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:0 8px; margin-right:4px; }
+.flag.dis { color:var(--accent); border-color:var(--accent); }
+.lab { width:120px; }
+.badge { display:inline-block; font-weight:600; font-size:13px; padding:2px 8px; border-radius:6px; }
+.badge.acceptable { color:var(--ok); background:var(--okbg); }
+.badge.toxic { color:var(--tox); background:var(--toxbg); }
+.badge.spam { color:var(--spam); background:var(--spambg); }
+.bar { display:flex; height:6px; border-radius:3px; overflow:hidden; background:var(--line); margin:6px 0 2px; }
+.p.acceptable { background:var(--ok); } .p.toxic { background:var(--tox); } .p.spam { background:var(--spam); }
+small { color:var(--muted); }
+.review { width:250px; }
+.picks { display:flex; flex-wrap:wrap; gap:4px; }
+.pick { font-size:13px; padding:2px 10px; }
+.pick.on { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+.pick.agree.on { background:var(--ok); border-color:var(--ok); color:var(--bg); }
+textarea { font:inherit; font-size:14px; width:100%; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:4px; }
+textarea.need { border-color:var(--tox); }
+.bl { display:block; font-size:13px; color:var(--muted); margin:4px 0; }
+.hidden { display:none; }
+body.blind tr:not(.done) .lab .badge, body.blind tr:not(.done) .lab .bar, body.blind tr:not(.done) .lab small,
+body.blind tr:not(.done) .flag, body.blind .pick.agree { visibility:hidden; }
+@media (max-width:760px) {
+  table, tbody, tr, td { display:block; width:100%; } thead { display:none; }
+  tr { border-bottom:1px solid var(--line); padding:8px 0; } td { border:0; padding:4px 0; }
+  .id { text-align:left; } .lab, .review { width:100%; } }
+</style></head>
+<body><div class="wrap">
+<h1>Clef moderation review</h1>
+<div class="sub">CS307 Applied AI Lab (B.Tech CSE, 3rd year) · Assignment 3: Build an AI artifact with Claude / Codex<br>Label under review: <b>clef</b> · 100 comments · <b>72</b> acceptable · <b>14</b> toxic · <b>14</b> spam · <b>4</b> below 0.5 confidence · <b>4</b> where the two models disagree</div>
+<div class="how">Read every comment and decide its label. Tap <b>Clef is right</b>, or tap your own label and write why.
+Tick <i>borderline</i> for close calls. Turn on <b>Hide labels</b> to decide before you see Clef's answer; each row's labels
+appear once you've decided. Answers save in this browser as you go. When all are reviewed, click <b>Download MISTAKES.md</b>.<br>
+Keys: <kbd>j</kbd>/<kbd>k</kbd> next/previous · <kbd>a</kbd> Clef is right · <kbd>1</kbd> acceptable · <kbd>2</kbd> toxic ·
+<kbd>3</kbd> spam · <kbd>b</kbd> borderline · <kbd>w</kbd> write reason · <kbd>Esc</kbd> leave the box · <kbd>n</kbd> next unreviewed</div>
+<div class="controls">
+  <button class="on" data-f="all">All</button>
+  <button data-f="todo">Not reviewed</button>
+  <button data-f="acceptable">Acceptable</button>
+  <button data-f="toxic">Toxic</button>
+  <button data-f="spam">Spam</button>
+  <button data-f="low">Low confidence</button>
+  <button data-f="dis">Models disagree</button>
+  <button data-f="changed">My changes</button>
+  <button id="sort">Sort: by id</button>
+  <button id="blind">Hide labels</button>
+  <span id="progress"></span>
+  <button class="primary" id="export">Download MISTAKES.md</button>
+  <div id="meter"><span></span></div>
+</div>
+<table><thead><tr><th>#</th><th>Comment</th><th>clef</th><th>clef-flash</th><th>Your review</th></tr></thead>
+<tbody id="rows">
+<tr class="row" tabindex="-1" data-id="1" data-label="acceptable" data-conf="0.8812" data-low="0" data-dis="0">
+  <td class="id">1</td>
+  <td class="text"><div class="meta">Aditya Kulkarni · Doubts · 2026-10-12 09:14</div>
+    <div class="body">Ma&#x27;am, is it okay if we use Claude for the frontend and Codex for the backend logic, or should the whole artifact be built with one tool?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.9%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.2%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.0%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.5%" title="toxic: 0.04"></span><span class="p spam" style="width:5.5%" title="spam: 0.05"></span></div><small>conf 0.72</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="2" data-label="acceptable" data-conf="0.8772" data-low="0" data-dis="0">
+  <td class="id">2</td>
+  <td class="text"><div class="meta">Sneha Iyer · Share your artifacts · 2026-10-12 10:02</div>
+    <div class="body">Submitted my artifact: a timetable clash checker for our dept. Claude made the UI in like 10 mins but I spent 2 hours fixing the CSV parsing. Link is in my submission.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.8%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.6%" title="spam: 0.03"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:87.8%" title="acceptable: 0.88"></span><span class="p toxic" style="width:5.5%" title="toxic: 0.06"></span><span class="p spam" style="width:6.6%" title="spam: 0.07"></span></div><small>conf 0.67</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="3" data-label="spam" data-conf="0.9336" data-low="0" data-dis="0">
+  <td class="id">3</td>
+  <td class="text"><div class="meta">AssignmentGuru_99 · General · 2026-10-12 10:40</div>
+    <div class="body">🔥🔥 GET YOUR ASSIGNMENTS DONE BY EXPERTS 🔥🔥 Claude/Codex/ML projects, plagiarism free, 100% marks guaranteed. WhatsApp +91 90000 12345. Special discount for CS307 students!!</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:1.6%" title="acceptable: 0.02"></span><span class="p toxic" style="width:0.6%" title="toxic: 0.01"></span><span class="p spam" style="width:97.8%" title="spam: 0.98"></span></div><small>conf 0.93</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:2.1%" title="acceptable: 0.02"></span><span class="p toxic" style="width:1.3%" title="toxic: 0.01"></span><span class="p spam" style="width:96.6%" title="spam: 0.97"></span></div><small>conf 0.90</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="4" data-label="acceptable" data-conf="0.8832" data-low="0" data-dis="0">
+  <td class="id">4</td>
+  <td class="text"><div class="meta">Pooja Nair · Doubts · 2026-10-12 11:25</div>
+    <div class="body">Does the reflection doc need to include the prompts we used? Mine is around 40 prompts, that seems like too much to paste.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.0%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.3%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.4%" title="toxic: 0.03"></span><span class="p spam" style="width:4.3%" title="spam: 0.04"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="5" data-label="acceptable" data-conf="0.8431" data-low="0" data-dis="0">
+  <td class="id">5</td>
+  <td class="text"><div class="meta">Harsh Agarwal · Share your artifacts · 2026-10-12 12:10</div>
+    <div class="body">@Rohit your expense splitter is really clean. One suggestion: there&#x27;s a rounding error when splitting ₹100 three ways, it shows 33.33 x 3 = 99.99.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.4%" title="toxic: 0.02"></span><span class="p spam" style="width:3.1%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.2%" title="acceptable: 0.94"></span><span class="p toxic" style="width:1.5%" title="toxic: 0.01"></span><span class="p spam" style="width:4.4%" title="spam: 0.04"></span></div><small>conf 0.83</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="6" data-label="toxic" data-conf="0.7418" data-low="0" data-dis="0">
+  <td class="id">6</td>
+  <td class="text"><div class="meta">Vikram Singh · Share your artifacts · 2026-10-12 12:31</div>
+    <div class="body">Rohit&#x27;s project is copy-paste from GitHub, everyone knows. Shameless guy, and sir still gives him marks. Pathetic.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:8.3%" title="acceptable: 0.08"></span><span class="p toxic" style="width:90.6%" title="toxic: 0.91"></span><span class="p spam" style="width:1.1%" title="spam: 0.01"></span></div><small>conf 0.74</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:6.5%" title="acceptable: 0.07"></span><span class="p toxic" style="width:90.6%" title="toxic: 0.91"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.74</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="7" data-label="acceptable" data-conf="0.8762" data-low="0" data-dis="0">
+  <td class="id">7</td>
+  <td class="text"><div class="meta">Mohd. Faizan · Doubts · 2026-10-12 13:05</div>
+    <div class="body">Bhai kisi ko Codex ka access mila? My college email isn&#x27;t working for the student plan.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.7%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.2%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.5%" title="toxic: 0.04"></span><span class="p spam" style="width:5.3%" title="spam: 0.05"></span></div><small>conf 0.73</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="8" data-label="acceptable" data-conf="0.8863" data-low="0" data-dis="0">
+  <td class="id">8</td>
+  <td class="text"><div class="meta">Shreya Patil · Submission &amp; grading · 2026-10-12 14:47</div>
+    <div class="body">Ma&#x27;am, is a deadline extension possible? Our hostel wifi was down from Thursday night till Saturday, the warden can confirm.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.1%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.1%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.5%" title="acceptable: 0.92"></span><span class="p toxic" style="width:4.0%" title="toxic: 0.04"></span><span class="p spam" style="width:4.5%" title="spam: 0.04"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="9" data-label="acceptable" data-conf="0.8689" data-low="0" data-dis="0">
+  <td class="id">9</td>
+  <td class="text"><div class="meta">Vivek Menon · Doubts · 2026-10-12 15:20</div>
+    <div class="body">I found that Claude kept adding features I didn&#x27;t ask for. Telling it &quot;do only X, nothing else&quot; at the start helped a lot.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.0%" title="toxic: 0.02"></span><span class="p spam" style="width:2.5%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.3%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.5%" title="toxic: 0.03"></span><span class="p spam" style="width:4.2%" title="spam: 0.04"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="10" data-label="spam" data-conf="0.7912" data-low="0" data-dis="0">
+  <td class="id">10</td>
+  <td class="text"><div class="meta">Free AI Deals · General · 2026-10-12 16:02</div>
+    <div class="body">Join our Telegram group for FREE Claude Pro &amp; ChatGPT Plus accounts 🤑 only ₹199 lifetime. t.me/aitoolsdeal_india (limited slots)</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:6.3%" title="acceptable: 0.06"></span><span class="p toxic" style="width:1.2%" title="toxic: 0.01"></span><span class="p spam" style="width:92.6%" title="spam: 0.93"></span></div><small>conf 0.79</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.8%" title="acceptable: 0.05"></span><span class="p toxic" style="width:3.0%" title="toxic: 0.03"></span><span class="p spam" style="width:92.2%" title="spam: 0.92"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="11" data-label="acceptable" data-conf="0.8701" data-low="0" data-dis="0">
+  <td class="id">11</td>
+  <td class="text"><div class="meta">Karthik Reddy · Doubts · 2026-10-12 17:33</div>
+    <div class="body">Can we deploy on Vercel or does it have to run locally? Mine needs an API key and I don&#x27;t want to expose it publicly.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.5%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:2.6%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.5%" title="acceptable: 0.94"></span><span class="p toxic" style="width:1.3%" title="toxic: 0.01"></span><span class="p spam" style="width:4.2%" title="spam: 0.04"></span></div><small>conf 0.84</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="12" data-label="acceptable" data-conf="0.8614" data-low="0" data-dis="0">
+  <td class="id">12</td>
+  <td class="text"><div class="meta">Ananya Joshi · Doubts · 2026-10-12 18:15</div>
+    <div class="body">Good point Sneha made in the lab: if the artifact stores data in localStorage, mention it in the reflection, since the data stays only in your browser.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.2%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:88.4%" title="acceptable: 0.88"></span><span class="p toxic" style="width:5.3%" title="toxic: 0.05"></span><span class="p spam" style="width:6.3%" title="spam: 0.06"></span></div><small>conf 0.68</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="13" data-label="toxic" data-conf="0.8992" data-low="0" data-dis="0">
+  <td class="id">13</td>
+  <td class="text"><div class="meta">Saurabh Yadav · Doubts · 2026-10-12 19:02</div>
+    <div class="body">Seriously who asks these dumb questions? Read the assignment PDF before posting, idiots. Wasting everyone&#x27;s time.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:2.5%" title="acceptable: 0.02"></span><span class="p toxic" style="width:96.5%" title="toxic: 0.97"></span><span class="p spam" style="width:1.0%" title="spam: 0.01"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:5.8%" title="acceptable: 0.06"></span><span class="p toxic" style="width:90.3%" title="toxic: 0.90"></span><span class="p spam" style="width:4.0%" title="spam: 0.04"></span></div><small>conf 0.73</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="14" data-label="acceptable" data-conf="0.9028" data-low="0" data-dis="0">
+  <td class="id">14</td>
+  <td class="text"><div class="meta">Nikhil Bansal · Submission &amp; grading · 2026-10-12 20:40</div>
+    <div class="body">Honestly I think this assignment is too easy for 15 marks, the AI does 80% of the work. Grading should focus more on the reflection part.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.7%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:1.7%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.8%" title="acceptable: 0.92"></span><span class="p toxic" style="width:4.1%" title="toxic: 0.04"></span><span class="p spam" style="width:4.1%" title="spam: 0.04"></span></div><small>conf 0.77</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="15" data-label="acceptable" data-conf="0.9026" data-low="0" data-dis="0">
+  <td class="id">15</td>
+  <td class="text"><div class="meta">Ankit Sharma · Share your artifacts · 2026-10-13 08:55</div>
+    <div class="body">My quiz app for GATE prep is up. Feedback welcome, especially on the scoring logic — not sure the negative marking works right.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.7%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.3%" title="toxic: 0.01"></span><span class="p spam" style="width:2.0%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:79.8%" title="acceptable: 0.80"></span><span class="p toxic" style="width:4.6%" title="toxic: 0.05"></span><span class="p spam" style="width:15.6%" title="spam: 0.16"></span></div><small>conf 0.50</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="16" data-label="acceptable" data-conf="0.8785" data-low="0" data-dis="0">
+  <td class="id">16</td>
+  <td class="text"><div class="meta">Meera Krishnan · Share your artifacts · 2026-10-13 09:30</div>
+    <div class="body">Tried it Ankit, the negative marking subtracts 1/3 even for unattempted questions. Check the condition where you compute the score.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.8%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.7%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.1%" title="toxic: 0.01"></span><span class="p spam" style="width:2.2%" title="spam: 0.02"></span></div><small>conf 0.90</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="17" data-label="spam" data-conf="0.8394" data-low="0" data-dis="0">
+  <td class="id">17</td>
+  <td class="text"><div class="meta">Ritu Verma · General · 2026-10-13 10:12</div>
+    <div class="body">Earn ₹5000 daily from home using AI tools!! No investment. Students also eligible. DM me or visit earnwithai-india.in</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.6%" title="acceptable: 0.05"></span><span class="p toxic" style="width:1.0%" title="toxic: 0.01"></span><span class="p spam" style="width:94.4%" title="spam: 0.94"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.2%" title="acceptable: 0.04"></span><span class="p toxic" style="width:2.4%" title="toxic: 0.02"></span><span class="p spam" style="width:93.4%" title="spam: 0.93"></span></div><small>conf 0.81</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="18" data-label="acceptable" data-conf="0.8912" data-low="0" data-dis="0">
+  <td class="id">18</td>
+  <td class="text"><div class="meta">Tanvi Gupta · Submission &amp; grading · 2026-10-13 11:05</div>
+    <div class="body">Sir, the rubric says &quot;originality&quot; — does a to-do app count as original if we add a feature like voice input?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.3%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.0%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.0%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.3%" title="toxic: 0.04"></span><span class="p spam" style="width:4.7%" title="spam: 0.05"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="19" data-label="toxic" data-conf="0.5477" data-low="0" data-dis="0">
+  <td class="id">19</td>
+  <td class="text"><div class="meta">Rahul Chauhan · Share your artifacts · 2026-10-13 11:48</div>
+    <div class="body">Bro your app looks like it was made by a 5th class kid lol. Delete it and save us the embarrassment 🤡</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:16.7%" title="acceptable: 0.17"></span><span class="p toxic" style="width:81.9%" title="toxic: 0.82"></span><span class="p spam" style="width:1.4%" title="spam: 0.01"></span></div><small>conf 0.55</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:25.5%" title="acceptable: 0.26"></span><span class="p toxic" style="width:69.8%" title="toxic: 0.70"></span><span class="p spam" style="width:4.7%" title="spam: 0.05"></span></div><small>conf 0.33</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="20" data-label="acceptable" data-conf="0.7872" data-low="0" data-dis="0">
+  <td class="id">20</td>
+  <td class="text"><div class="meta">Ishita Banerjee · General · 2026-10-13 12:20</div>
+    <div class="body">Thank you ma&#x27;am for the extra session on prompting yesterday. The bit about giving examples of the output format was super useful.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.5%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.6%" title="toxic: 0.04"></span><span class="p spam" style="width:3.9%" title="spam: 0.04"></span></div><small>conf 0.79</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:97.5%" title="acceptable: 0.97"></span><span class="p toxic" style="width:0.9%" title="toxic: 0.01"></span><span class="p spam" style="width:1.6%" title="spam: 0.02"></span></div><small>conf 0.93</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="21" data-label="acceptable" data-conf="0.8728" data-low="0" data-dis="0">
+  <td class="id">21</td>
+  <td class="text"><div class="meta">Siddharth Rao · Doubts · 2026-10-13 13:44</div>
+    <div class="body">Codex wrote my tests but half of them were testing the wrong thing. Lesson learned: read the generated tests, don&#x27;t just see green ✅ and move on.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.6%" title="acceptable: 0.96"></span><span class="p toxic" style="width:2.1%" title="toxic: 0.02"></span><span class="p spam" style="width:2.3%" title="spam: 0.02"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.2%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.1%" title="toxic: 0.04"></span><span class="p spam" style="width:4.7%" title="spam: 0.05"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="22" data-label="acceptable" data-conf="0.9102" data-low="0" data-dis="0">
+  <td class="id">22</td>
+  <td class="text"><div class="meta">Aman Tiwari · Doubts · 2026-10-13 15:10</div>
+    <div class="body">Is anyone else getting &quot;rate limit exceeded&quot; on the free tier? It&#x27;s been blocking me since afternoon.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.9%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.4%" title="toxic: 0.01"></span><span class="p spam" style="width:1.7%" title="spam: 0.02"></span></div><small>conf 0.91</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.5%" title="acceptable: 0.97"></span><span class="p toxic" style="width:0.8%" title="toxic: 0.01"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.90</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="23" data-label="acceptable" data-conf="0.8693" data-low="0" data-dis="0">
+  <td class="id">23</td>
+  <td class="text"><div class="meta">Pooja Nair · Doubts · 2026-10-13 15:26</div>
+    <div class="body">Yes same, try after midnight, it reset for me around 12:30.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.1%" title="acceptable: 0.92"></span><span class="p toxic" style="width:1.3%" title="toxic: 0.01"></span><span class="p spam" style="width:6.6%" title="spam: 0.07"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="24" data-label="spam" data-conf="0.6943" data-low="0" data-dis="0">
+  <td class="id">24</td>
+  <td class="text"><div class="meta">Raju Tech · General · 2026-10-13 16:03</div>
+    <div class="body">Subscribe to my YouTube channel &quot;TechWithRaju&quot; for the full solution of CS307 assignment 3 step by step!! Link in bio. Like share subscribe 🙏🙏</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:10.2%" title="acceptable: 0.10"></span><span class="p toxic" style="width:1.2%" title="toxic: 0.01"></span><span class="p spam" style="width:88.6%" title="spam: 0.89"></span></div><small>conf 0.69</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:6.8%" title="acceptable: 0.07"></span><span class="p toxic" style="width:3.0%" title="toxic: 0.03"></span><span class="p spam" style="width:90.2%" title="spam: 0.90"></span></div><small>conf 0.73</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="25" data-label="acceptable" data-conf="0.8843" data-low="0" data-dis="0">
+  <td class="id">25</td>
+  <td class="text"><div class="meta">Kavya Pillai · Share your artifacts · 2026-10-13 17:22</div>
+    <div class="body">Our group made a canteen menu voting app. Problem: anyone can vote 100 times by refreshing. Any simple way to stop this without a login?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.0%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.3%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.8%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.2%" title="toxic: 0.03"></span><span class="p spam" style="width:4.0%" title="spam: 0.04"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="26" data-label="acceptable" data-conf="0.7936" data-low="0" data-dis="0">
+  <td class="id">26</td>
+  <td class="text"><div class="meta">Harsh Agarwal · Share your artifacts · 2026-10-13 17:40</div>
+    <div class="body">Use a localStorage flag for basic prevention, it&#x27;s not secure but for a class demo it&#x27;s fine. Or ask for roll number and check duplicates.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.7%" title="acceptable: 0.93"></span><span class="p toxic" style="width:2.7%" title="toxic: 0.03"></span><span class="p spam" style="width:4.6%" title="spam: 0.05"></span></div><small>conf 0.79</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.0%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.4%" title="toxic: 0.01"></span><span class="p spam" style="width:3.6%" title="spam: 0.04"></span></div><small>conf 0.86</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="27" data-label="toxic" data-conf="0.2604" data-low="1" data-dis="1">
+  <td class="id">27</td>
+  <td class="text"><div class="meta">Deepak Mishra · Submission &amp; grading · 2026-10-13 19:05</div>
+    <div class="body">Girls in this class only get good marks because sir is soft on them. Ishita&#x27;s project is average at best.</div><div class="flags"><span class="flag">low confidence</span><span class="flag dis">models disagree</span></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:37.2%" title="acceptable: 0.37"></span><span class="p toxic" style="width:60.7%" title="toxic: 0.61"></span><span class="p spam" style="width:2.1%" title="spam: 0.02"></span></div><small>conf 0.26</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.6%" title="acceptable: 0.92"></span><span class="p toxic" style="width:5.2%" title="toxic: 0.05"></span><span class="p spam" style="width:3.2%" title="spam: 0.03"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="28" data-label="acceptable" data-conf="0.8633" data-low="0" data-dis="0">
+  <td class="id">28</td>
+  <td class="text"><div class="meta">Omkar Jadhav · Doubts · 2026-10-13 20:30</div>
+    <div class="body">Sharing a tip: ask Claude to explain the code it wrote line by line before you submit. Viva mein pakde jaoge otherwise 😅</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.3%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:2.8%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.1%" title="acceptable: 0.91"></span><span class="p toxic" style="width:2.9%" title="toxic: 0.03"></span><span class="p spam" style="width:6.0%" title="spam: 0.06"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="29" data-label="acceptable" data-conf="0.8863" data-low="0" data-dis="0">
+  <td class="id">29</td>
+  <td class="text"><div class="meta">Prateek Saxena · Submission &amp; grading · 2026-10-14 09:02</div>
+    <div class="body">Is the viva individual or group-wise? Some of us did most of the work and others just watched.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.1%" title="acceptable: 0.96"></span><span class="p toxic" style="width:2.1%" title="toxic: 0.02"></span><span class="p spam" style="width:1.8%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.8%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.5%" title="toxic: 0.04"></span><span class="p spam" style="width:3.7%" title="spam: 0.04"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="30" data-label="acceptable" data-conf="0.8629" data-low="0" data-dis="0">
+  <td class="id">30</td>
+  <td class="text"><div class="meta">Ritika Sen · Submission &amp; grading · 2026-10-14 09:20</div>
+    <div class="body">^ this. In my group one member didn&#x27;t even open the repo. How do we report this without drama?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.2%" title="acceptable: 0.95"></span><span class="p toxic" style="width:3.4%" title="toxic: 0.03"></span><span class="p spam" style="width:1.3%" title="spam: 0.01"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.7%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.6%" title="toxic: 0.04"></span><span class="p spam" style="width:3.7%" title="spam: 0.04"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="31" data-label="toxic" data-conf="0.8973" data-low="0" data-dis="0">
+  <td class="id">31</td>
+  <td class="text"><div class="meta">Rahul Chauhan · Submission &amp; grading · 2026-10-14 09:41</div>
+    <div class="body">@Karan we all know you&#x27;re the one who didn&#x27;t open the repo. Useless fellow, always free-riding. Get lost.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:2.7%" title="acceptable: 0.03"></span><span class="p toxic" style="width:96.5%" title="toxic: 0.96"></span><span class="p spam" style="width:0.8%" title="spam: 0.01"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:4.3%" title="acceptable: 0.04"></span><span class="p toxic" style="width:92.5%" title="toxic: 0.93"></span><span class="p spam" style="width:3.1%" title="spam: 0.03"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="32" data-label="acceptable" data-conf="0.8903" data-low="0" data-dis="0">
+  <td class="id">32</td>
+  <td class="text"><div class="meta">Aditya Kulkarni · Doubts · 2026-10-14 10:15</div>
+    <div class="body">Can we use Gemini or other models, or strictly Claude/Codex? The assignment title says Claude/Codex but the PDF says &quot;any AI coding assistant&quot;.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.2%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:2.2%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.6%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.8%" title="toxic: 0.04"></span><span class="p spam" style="width:4.6%" title="spam: 0.05"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="33" data-label="spam" data-conf="0.8300" data-low="0" data-dis="0">
+  <td class="id">33</td>
+  <td class="text"><div class="meta">exam_updates_2026 · General · 2026-10-14 11:00</div>
+    <div class="body">URGENT: CS307 end-sem question paper leaked!! Get it before it&#x27;s removed. ₹499 only. Pay on UPI 9000012345@upi and send screenshot.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.4%" title="acceptable: 0.04"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:94.0%" title="spam: 0.94"></span></div><small>conf 0.83</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:6.7%" title="acceptable: 0.07"></span><span class="p toxic" style="width:4.0%" title="toxic: 0.04"></span><span class="p spam" style="width:89.4%" title="spam: 0.89"></span></div><small>conf 0.71</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="34" data-label="acceptable" data-conf="0.8854" data-low="0" data-dis="0">
+  <td class="id">34</td>
+  <td class="text"><div class="meta">Shreya Patil · Submission &amp; grading · 2026-10-14 21:12</div>
+    <div class="body">Sir, the submission link on Moodle is showing &quot;closed&quot; even though the deadline is tonight 11:59 PM.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.1%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.1%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.4%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.6%" title="toxic: 0.04"></span><span class="p spam" style="width:4.0%" title="spam: 0.04"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="35" data-label="acceptable" data-conf="0.8564" data-low="0" data-dis="0">
+  <td class="id">35</td>
+  <td class="text"><div class="meta">Rakesh M (TA) · Submission &amp; grading · 2026-10-14 21:30</div>
+    <div class="body">It&#x27;s open now, please refresh. It was a timezone setting issue on the course page.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.0%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.3%" title="toxic: 0.02"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.2%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.4%" title="toxic: 0.01"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.89</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="36" data-label="acceptable" data-conf="0.8670" data-low="0" data-dis="0">
+  <td class="id">36</td>
+  <td class="text"><div class="meta">Divya Hegde · Share your artifacts · 2026-10-15 08:40</div>
+    <div class="body">My artifact helps my mom track her tailoring orders. She actually uses it now! Never thought an assignment would be useful at home.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.4%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.3%" title="acceptable: 0.93"></span><span class="p toxic" style="width:0.9%" title="toxic: 0.01"></span><span class="p spam" style="width:5.7%" title="spam: 0.06"></span></div><small>conf 0.81</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="37" data-label="acceptable" data-conf="0.7762" data-low="0" data-dis="0">
+  <td class="id">37</td>
+  <td class="text"><div class="meta">Ananya Joshi · Share your artifacts · 2026-10-15 09:05</div>
+    <div class="body">That&#x27;s amazing Divya 👏 Maybe add a WhatsApp reminder for due dates? Could be a nice extension.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.0%" title="acceptable: 0.92"></span><span class="p toxic" style="width:2.8%" title="toxic: 0.03"></span><span class="p spam" style="width:5.2%" title="spam: 0.05"></span></div><small>conf 0.78</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.6%" title="acceptable: 0.95"></span><span class="p toxic" style="width:0.9%" title="toxic: 0.01"></span><span class="p spam" style="width:4.5%" title="spam: 0.05"></span></div><small>conf 0.84</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="38" data-label="acceptable" data-conf="0.8860" data-low="0" data-dis="0">
+  <td class="id">38</td>
+  <td class="text"><div class="meta">Kunal Bhatia · Doubts · 2026-10-15 10:18</div>
+    <div class="body">Doubt: if Claude generates code that&#x27;s similar to some open-source project, is that plagiarism? How do we cite it?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.1%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.2%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:89.6%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.5%" title="toxic: 0.04"></span><span class="p spam" style="width:6.0%" title="spam: 0.06"></span></div><small>conf 0.71</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="39" data-label="acceptable" data-conf="0.8431" data-low="0" data-dis="0">
+  <td class="id">39</td>
+  <td class="text"><div class="meta">Dr. Lakshmi Narayanan · Doubts · 2026-10-15 11:02</div>
+    <div class="body">Good question. Mention the tool and your prompts in the reflection, and if you knowingly used a library or snippet, cite it like any other source.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.2%" title="toxic: 0.02"></span><span class="p spam" style="width:3.2%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.8%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.3%" title="toxic: 0.01"></span><span class="p spam" style="width:1.9%" title="spam: 0.02"></span></div><small>conf 0.91</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="40" data-label="spam" data-conf="0.8724" data-low="0" data-dis="0">
+  <td class="id">40</td>
+  <td class="text"><div class="meta">Shree Computers · General · 2026-10-15 12:30</div>
+    <div class="body">Cheap laptops for engineering students!! i5 12th gen just ₹18,999. Limited stock. Call Shree Computers, Shivaji Nagar 📞 90000 54321</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.5%" title="acceptable: 0.03"></span><span class="p toxic" style="width:0.9%" title="toxic: 0.01"></span><span class="p spam" style="width:95.6%" title="spam: 0.96"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.9%" title="acceptable: 0.04"></span><span class="p toxic" style="width:3.0%" title="toxic: 0.03"></span><span class="p spam" style="width:93.0%" title="spam: 0.93"></span></div><small>conf 0.80</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="41" data-label="toxic" data-conf="0.5213" data-low="0" data-dis="0">
+  <td class="id">41</td>
+  <td class="text"><div class="meta">Vikram Singh · Share your artifacts · 2026-10-15 13:15</div>
+    <div class="body">This forum is full of sir&#x27;s chamchas. Everybody praising every useless app. Fake people.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:16.7%" title="acceptable: 0.17"></span><span class="p toxic" style="width:80.8%" title="toxic: 0.81"></span><span class="p spam" style="width:2.5%" title="spam: 0.03"></span></div><small>conf 0.52</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:12.4%" title="acceptable: 0.12"></span><span class="p toxic" style="width:79.5%" title="toxic: 0.79"></span><span class="p spam" style="width:8.1%" title="spam: 0.08"></span></div><small>conf 0.48</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="42" data-label="acceptable" data-conf="0.8816" data-low="0" data-dis="0">
+  <td class="id">42</td>
+  <td class="text"><div class="meta">Kunal Bhatia · General · 2026-10-15 14:00</div>
+    <div class="body">I&#x27;m not sure using AI for assignments is actually teaching us anything. I learned more debugging the output than from the tool itself.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.9%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.3%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.0%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.1%" title="toxic: 0.03"></span><span class="p spam" style="width:3.8%" title="spam: 0.04"></span></div><small>conf 0.80</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="43" data-label="acceptable" data-conf="0.8127" data-low="0" data-dis="0">
+  <td class="id">43</td>
+  <td class="text"><div class="meta">Siddharth Rao · General · 2026-10-15 14:22</div>
+    <div class="body">Disagree a bit — knowing what to ask and how to check the output is itself a skill. Industry is going this way anyway.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.4%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.1%" title="toxic: 0.03"></span><span class="p spam" style="width:3.5%" title="spam: 0.03"></span></div><small>conf 0.81</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:97.2%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.2%" title="toxic: 0.01"></span><span class="p spam" style="width:1.5%" title="spam: 0.02"></span></div><small>conf 0.92</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="44" data-label="acceptable" data-conf="0.8713" data-low="0" data-dis="0">
+  <td class="id">44</td>
+  <td class="text"><div class="meta">Vivek Menon · Doubts · 2026-10-15 16:35</div>
+    <div class="body">My Codex output used a deprecated pandas function (append). Fixed it with concat. Posting in case anyone else hits the same error.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.6%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.6%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.0%" title="acceptable: 0.91"></span><span class="p toxic" style="width:3.5%" title="toxic: 0.04"></span><span class="p spam" style="width:5.4%" title="spam: 0.05"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="45" data-label="acceptable" data-conf="0.7852" data-low="0" data-dis="0">
+  <td class="id">45</td>
+  <td class="text"><div class="meta">Tanvi Gupta · Doubts · 2026-10-15 16:50</div>
+    <div class="body">Thanks Vivek, was stuck on exactly this for an hour 🙏</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.4%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.7%" title="toxic: 0.04"></span><span class="p spam" style="width:3.9%" title="spam: 0.04"></span></div><small>conf 0.79</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.7%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.4%" title="toxic: 0.01"></span><span class="p spam" style="width:3.0%" title="spam: 0.03"></span></div><small>conf 0.87</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="46" data-label="spam" data-conf="0.9251" data-low="0" data-dis="0">
+  <td class="id">46</td>
+  <td class="text"><div class="meta">CryptoKing Official · General · 2026-10-15 18:00</div>
+    <div class="body">💰 Crypto signals group 💰 90% accuracy, students making ₹50k/month. Join fast before closing: bit.ly/crypto-signal-vip</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:1.7%" title="acceptable: 0.02"></span><span class="p toxic" style="width:0.8%" title="toxic: 0.01"></span><span class="p spam" style="width:97.5%" title="spam: 0.97"></span></div><small>conf 0.93</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.7%" title="acceptable: 0.04"></span><span class="p toxic" style="width:2.9%" title="toxic: 0.03"></span><span class="p spam" style="width:93.4%" title="spam: 0.93"></span></div><small>conf 0.81</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="47" data-label="acceptable" data-conf="0.9046" data-low="0" data-dis="0">
+  <td class="id">47</td>
+  <td class="text"><div class="meta">Mohd. Faizan · Submission &amp; grading · 2026-10-16 09:10</div>
+    <div class="body">Ma&#x27;am, will the marks be uploaded before the Diwali break?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.7%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:1.7%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.6%" title="acceptable: 0.92"></span><span class="p toxic" style="width:4.0%" title="toxic: 0.04"></span><span class="p spam" style="width:4.4%" title="spam: 0.04"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="48" data-label="toxic" data-conf="0.8528" data-low="0" data-dis="0">
+  <td class="id">48</td>
+  <td class="text"><div class="meta">Deepak Mishra · Submission &amp; grading · 2026-10-16 10:25</div>
+    <div class="body">Whoever gave my project 2/10 in peer review, you&#x27;re a jealous loser. I know who you are and I&#x27;ll see you outside the lab.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:4.3%" title="acceptable: 0.04"></span><span class="p toxic" style="width:94.9%" title="toxic: 0.95"></span><span class="p spam" style="width:0.8%" title="spam: 0.01"></span></div><small>conf 0.85</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:6.3%" title="acceptable: 0.06"></span><span class="p toxic" style="width:90.2%" title="toxic: 0.90"></span><span class="p spam" style="width:3.5%" title="spam: 0.04"></span></div><small>conf 0.73</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="49" data-label="acceptable" data-conf="0.8422" data-low="0" data-dis="0">
+  <td class="id">49</td>
+  <td class="text"><div class="meta">Kavya Pillai · Submission &amp; grading · 2026-10-16 11:00</div>
+    <div class="body">Peer review feedback was helpful, thanks to whoever pointed out the mobile layout breaking. Fixed it.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.5%" title="toxic: 0.03"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.5%" title="acceptable: 0.91"></span><span class="p toxic" style="width:3.9%" title="toxic: 0.04"></span><span class="p spam" style="width:4.7%" title="spam: 0.05"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="50" data-label="acceptable" data-conf="0.8802" data-low="0" data-dis="0">
+  <td class="id">50</td>
+  <td class="text"><div class="meta">Riya Thomas · Doubts · 2026-10-16 11:40</div>
+    <div class="body">Can someone explain what &quot;artifact&quot; means here? Is it just the code or a deployed thing people can open?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.9%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.6%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.3%" title="toxic: 0.01"></span><span class="p spam" style="width:2.1%" title="spam: 0.02"></span></div><small>conf 0.90</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="51" data-label="acceptable" data-conf="0.8558" data-low="0" data-dis="0">
+  <td class="id">51</td>
+  <td class="text"><div class="meta">Rakesh M (TA) · Doubts · 2026-10-16 12:05</div>
+    <div class="body">From the PDF: artifact = a working, shareable thing (web page, tool, small app) + a 1-page reflection. Code alone isn&#x27;t enough.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.0%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.0%" title="toxic: 0.02"></span><span class="p spam" style="width:3.0%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:88.2%" title="acceptable: 0.88"></span><span class="p toxic" style="width:4.8%" title="toxic: 0.05"></span><span class="p spam" style="width:7.0%" title="spam: 0.07"></span></div><small>conf 0.68</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="52" data-label="acceptable" data-conf="0.8700" data-low="0" data-dis="0">
+  <td class="id">52</td>
+  <td class="text"><div class="meta">Shruti Deshpande · Share your artifacts · 2026-10-16 14:15</div>
+    <div class="body">Built a Marathi–English vocabulary flashcard app. Claude handled the Devanagari fonts without issues, which surprised me.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.5%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.8%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:89.4%" title="acceptable: 0.89"></span><span class="p toxic" style="width:4.5%" title="toxic: 0.05"></span><span class="p spam" style="width:6.0%" title="spam: 0.06"></span></div><small>conf 0.71</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="53" data-label="acceptable" data-conf="0.8847" data-low="0" data-dis="0">
+  <td class="id">53</td>
+  <td class="text"><div class="meta">Karthik Reddy · Share your artifacts · 2026-10-16 14:40</div>
+    <div class="body">Nice! Does it do audio pronunciation? The browser speech API supports mr-IN I think.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.0%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.2%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.5%" title="acceptable: 0.90"></span><span class="p toxic" style="width:3.8%" title="toxic: 0.04"></span><span class="p spam" style="width:5.7%" title="spam: 0.06"></span></div><small>conf 0.74</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="54" data-label="spam" data-conf="0.9379" data-low="0" data-dis="0">
+  <td class="id">54</td>
+  <td class="text"><div class="meta">Assignment Help Zone · General · 2026-10-16 15:30</div>
+    <div class="body">Need help with your assignment? Our PhD experts do Python, Java, ML, AI projects. Fast delivery in 24 hours. Visit www.assignmenthelpzone.co.in or mail help@assignmenthelpzone.co.in</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:1.5%" title="acceptable: 0.01"></span><span class="p toxic" style="width:0.6%" title="toxic: 0.01"></span><span class="p spam" style="width:97.9%" title="spam: 0.98"></span></div><small>conf 0.94</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:2.1%" title="acceptable: 0.02"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:96.4%" title="spam: 0.96"></span></div><small>conf 0.89</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="55" data-label="toxic" data-conf="0.6457" data-low="0" data-dis="0">
+  <td class="id">55</td>
+  <td class="text"><div class="meta">Saurabh Yadav · Share your artifacts · 2026-10-16 16:02</div>
+    <div class="body">Ankit&#x27;s GATE quiz app is trash just like his GATE score will be 😂😂</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:12.1%" title="acceptable: 0.12"></span><span class="p toxic" style="width:86.6%" title="toxic: 0.87"></span><span class="p spam" style="width:1.4%" title="spam: 0.01"></span></div><small>conf 0.65</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:8.3%" title="acceptable: 0.08"></span><span class="p toxic" style="width:87.3%" title="toxic: 0.87"></span><span class="p spam" style="width:4.4%" title="spam: 0.04"></span></div><small>conf 0.66</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="56" data-label="acceptable" data-conf="0.9026" data-low="0" data-dis="0">
+  <td class="id">56</td>
+  <td class="text"><div class="meta">Prateek Saxena · Submission &amp; grading · 2026-10-16 18:20</div>
+    <div class="body">Request: can the TA share a sample of a good reflection from last year? Not sure what level of detail is expected.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.7%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.5%" title="toxic: 0.01"></span><span class="p spam" style="width:1.8%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.2%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.8%" title="toxic: 0.05"></span><span class="p spam" style="width:5.0%" title="spam: 0.05"></span></div><small>conf 0.73</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="57" data-label="acceptable" data-conf="0.8449" data-low="0" data-dis="0">
+  <td class="id">57</td>
+  <td class="text"><div class="meta">Aman Tiwari · Submission &amp; grading · 2026-10-16 22:45</div>
+    <div class="body">Sir, I submitted the wrong link by mistake (my old repo). Can you allow a resubmission?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.6%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:3.5%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.1%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.2%" title="toxic: 0.04"></span><span class="p spam" style="width:5.7%" title="spam: 0.06"></span></div><small>conf 0.73</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="58" data-label="acceptable" data-conf="0.8930" data-low="0" data-dis="0">
+  <td class="id">58</td>
+  <td class="text"><div class="meta">Riya Thomas · Doubts · 2026-10-17 09:00</div>
+    <div class="body">Is it fine if our artifact uses a free public API (like weather)? Or should everything be self-contained?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.3%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:2.1%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:89.6%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.5%" title="toxic: 0.04"></span><span class="p spam" style="width:5.9%" title="spam: 0.06"></span></div><small>conf 0.71</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="59" data-label="acceptable" data-conf="0.8766" data-low="0" data-dis="0">
+  <td class="id">59</td>
+  <td class="text"><div class="meta">Meera Krishnan · General · 2026-10-17 10:30</div>
+    <div class="body">My experience: Claude is better at explaining, Codex felt faster for refactoring. Both hallucinated a library function once.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.8%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.2%" title="acceptable: 0.91"></span><span class="p toxic" style="width:3.9%" title="toxic: 0.04"></span><span class="p spam" style="width:4.9%" title="spam: 0.05"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="60" data-label="acceptable" data-conf="0.8490" data-low="0" data-dis="0">
+  <td class="id">60</td>
+  <td class="text"><div class="meta">Nikhil Bansal · General · 2026-10-17 10:52</div>
+    <div class="body">Agree. Codex invented a &quot;pd.read_html_table&quot; function for me 😂 Always run the code.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.8%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.5%" title="toxic: 0.03"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.85</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.1%" title="acceptable: 0.92"></span><span class="p toxic" style="width:2.8%" title="toxic: 0.03"></span><span class="p spam" style="width:5.1%" title="spam: 0.05"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="61" data-label="toxic" data-conf="0.8554" data-low="0" data-dis="0">
+  <td class="id">61</td>
+  <td class="text"><div class="meta">Rahul Chauhan · General · 2026-10-17 11:10</div>
+    <div class="body">Shut up Meera, nobody cares about your &quot;experience&quot;. Topper behaviour as usual 🙄</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:3.9%" title="acceptable: 0.04"></span><span class="p toxic" style="width:95.0%" title="toxic: 0.95"></span><span class="p spam" style="width:1.1%" title="spam: 0.01"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:4.2%" title="acceptable: 0.04"></span><span class="p toxic" style="width:91.7%" title="toxic: 0.92"></span><span class="p spam" style="width:4.1%" title="spam: 0.04"></span></div><small>conf 0.77</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="62" data-label="acceptable" data-conf="0.8604" data-low="0" data-dis="0">
+  <td class="id">62</td>
+  <td class="text"><div class="meta">Omkar Jadhav · Share your artifacts · 2026-10-17 12:40</div>
+    <div class="body">Our hostel group made an attendance tracker for the mess. Uploaded screenshots to the drive folder as instructed.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.2%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.0%" title="toxic: 0.02"></span><span class="p spam" style="width:2.8%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.0%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.0%" title="toxic: 0.04"></span><span class="p spam" style="width:4.9%" title="spam: 0.05"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="63" data-label="spam" data-conf="0.8591" data-low="0" data-dis="0">
+  <td class="id">63</td>
+  <td class="text"><div class="meta">Notes Wala Bhaiya · General · 2026-10-17 13:30</div>
+    <div class="body">Hello dear friends, I am selling original notes of all subjects 3rd year CSE. PDF available at low price. Contact on Instagram @notes.wala.bhaiya</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.9%" title="acceptable: 0.04"></span><span class="p toxic" style="width:1.0%" title="toxic: 0.01"></span><span class="p spam" style="width:95.1%" title="spam: 0.95"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.7%" title="acceptable: 0.05"></span><span class="p toxic" style="width:2.8%" title="toxic: 0.03"></span><span class="p spam" style="width:92.5%" title="spam: 0.92"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="64" data-label="acceptable" data-conf="0.8915" data-low="0" data-dis="0">
+  <td class="id">64</td>
+  <td class="text"><div class="meta">Arjun Das · Submission &amp; grading · 2026-10-17 15:05</div>
+    <div class="body">Ma&#x27;am, our artifact is for visually impaired users (screen-reader friendly bus timings). Can we get extra time to test it with actual users from the NGO?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.3%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:1.9%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:89.8%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.6%" title="toxic: 0.05"></span><span class="p spam" style="width:5.6%" title="spam: 0.06"></span></div><small>conf 0.72</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="65" data-label="acceptable" data-conf="0.8358" data-low="0" data-dis="0">
+  <td class="id">65</td>
+  <td class="text"><div class="meta">Neha Kapoor · Submission &amp; grading · 2026-10-17 15:30</div>
+    <div class="body">That&#x27;s a great project, Arjun. Happy to help test with NVDA if you need another tester.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.3%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.4%" title="toxic: 0.02"></span><span class="p spam" style="width:3.3%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.0%" title="acceptable: 0.90"></span><span class="p toxic" style="width:4.4%" title="toxic: 0.04"></span><span class="p spam" style="width:5.6%" title="spam: 0.06"></span></div><small>conf 0.72</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="66" data-label="acceptable" data-conf="0.8463" data-low="0" data-dis="0">
+  <td class="id">66</td>
+  <td class="text"><div class="meta">Sonu Kumar · Doubts · 2026-10-17 17:10</div>
+    <div class="body">Kya reflection Hindi mein likh sakte hain? My English writing is not that good but I can explain properly in Hindi.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.7%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.3%" title="toxic: 0.02"></span><span class="p spam" style="width:3.1%" title="spam: 0.03"></span></div><small>conf 0.85</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.7%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.87</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="67" data-label="acceptable" data-conf="0.9031" data-low="0" data-dis="0">
+  <td class="id">67</td>
+  <td class="text"><div class="meta">Ishita Banerjee · Submission &amp; grading · 2026-10-18 09:25</div>
+    <div class="body">The rubric weightage is unclear. 40% artifact, 40% reflection, 20% viva — is that correct? The slides said something different.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.7%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:1.7%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.1%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.5%" title="toxic: 0.04"></span><span class="p spam" style="width:4.4%" title="spam: 0.04"></span></div><small>conf 0.75</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="68" data-label="acceptable" data-conf="0.8955" data-low="0" data-dis="0">
+  <td class="id">68</td>
+  <td class="text"><div class="meta">Ritika Sen · Submission &amp; grading · 2026-10-18 10:00</div>
+    <div class="body">The grading for assignment 2 was unfair in my opinion, the same output got different marks in different batches. Please clarify the re-evaluation process.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.4%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:1.7%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.6%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.6%" title="toxic: 0.05"></span><span class="p spam" style="width:4.8%" title="spam: 0.05"></span></div><small>conf 0.74</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="69" data-label="toxic" data-conf="0.7803" data-low="0" data-dis="1">
+  <td class="id">69</td>
+  <td class="text"><div class="meta">Vikram Singh · Submission &amp; grading · 2026-10-18 10:22</div>
+    <div class="body">TA doesn&#x27;t know anything himself, how will he grade AI projects? Clueless fellow should go back to school.</div><div class="flags"><span class="flag dis">models disagree</span></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:7.0%" title="acceptable: 0.07"></span><span class="p toxic" style="width:92.1%" title="toxic: 0.92"></span><span class="p spam" style="width:0.9%" title="spam: 0.01"></span></div><small>conf 0.78</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:84.0%" title="acceptable: 0.84"></span><span class="p toxic" style="width:14.7%" title="toxic: 0.15"></span><span class="p spam" style="width:1.3%" title="spam: 0.01"></span></div><small>conf 0.59</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="70" data-label="acceptable" data-conf="0.8714" data-low="0" data-dis="0">
+  <td class="id">70</td>
+  <td class="text"><div class="meta">Harsh Agarwal · Doubts · 2026-10-18 12:15</div>
+    <div class="body">Tip for anyone using Claude artifacts: ask it to add a &quot;reset data&quot; button. Saved me during the demo when the test data got messed up.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.6%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.0%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:3.4%" title="spam: 0.03"></span></div><small>conf 0.86</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="71" data-label="spam" data-conf="0.9215" data-low="0" data-dis="0">
+  <td class="id">71</td>
+  <td class="text"><div class="meta">Giveaway India · General · 2026-10-18 13:00</div>
+    <div class="body">FREE iPhone 17 giveaway for college students 🎉 Just fill the form with your name, college ID and Aadhaar number: forms-giveaway-india.com/iphone</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:1.7%" title="acceptable: 0.02"></span><span class="p toxic" style="width:1.0%" title="toxic: 0.01"></span><span class="p spam" style="width:97.3%" title="spam: 0.97"></span></div><small>conf 0.92</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.9%" title="acceptable: 0.05"></span><span class="p toxic" style="width:3.1%" title="toxic: 0.03"></span><span class="p spam" style="width:92.0%" title="spam: 0.92"></span></div><small>conf 0.77</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="72" data-label="acceptable" data-conf="0.8948" data-low="0" data-dis="0">
+  <td class="id">72</td>
+  <td class="text"><div class="meta">Gaurav Pandey · Share your artifacts · 2026-10-18 15:45</div>
+    <div class="body">Our team used Codex to convert old C++ lab programs into a small web visualizer for sorting algorithms. Feedback welcome!</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.4%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:1.9%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.6%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.0%" title="toxic: 0.04"></span><span class="p spam" style="width:5.4%" title="spam: 0.05"></span></div><small>conf 0.74</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="73" data-label="acceptable" data-conf="0.8661" data-low="0" data-dis="0">
+  <td class="id">73</td>
+  <td class="text"><div class="meta">Shruti Deshpande · Share your artifacts · 2026-10-18 16:10</div>
+    <div class="body">Very nice, but the bubble sort animation is too fast to follow. Maybe add a speed slider?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.4%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.1%" title="toxic: 0.02"></span><span class="p spam" style="width:2.5%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.2%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.6%" title="toxic: 0.03"></span><span class="p spam" style="width:3.1%" title="spam: 0.03"></span></div><small>conf 0.83</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="74" data-label="acceptable" data-conf="0.8957" data-low="0" data-dis="0">
+  <td class="id">74</td>
+  <td class="text"><div class="meta">Tanvi Gupta · Doubts · 2026-10-18 18:30</div>
+    <div class="body">Is there a word limit for the reflection? I wrote 1100 words, feels too long.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.4%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:2.0%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.2%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.0%" title="toxic: 0.03"></span><span class="p spam" style="width:3.8%" title="spam: 0.04"></span></div><small>conf 0.81</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="75" data-label="acceptable" data-conf="0.8374" data-low="0" data-dis="0">
+  <td class="id">75</td>
+  <td class="text"><div class="meta">Pooja Nair · Doubts · 2026-10-18 18:45</div>
+    <div class="body">Ma&#x27;am said max 1 page, so around 500 words.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.3%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.5%" title="toxic: 0.03"></span><span class="p spam" style="width:3.1%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.4%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.87</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="76" data-label="toxic" data-conf="0.2616" data-low="1" data-dis="1">
+  <td class="id">76</td>
+  <td class="text"><div class="meta">Deepak Mishra · Share your artifacts · 2026-10-19 09:10</div>
+    <div class="body">Everyone from that side of the hostel copies, it&#x27;s in their blood. Don&#x27;t trust their &quot;original&quot; projects.</div><div class="flags"><span class="flag">low confidence</span><span class="flag dis">models disagree</span></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:34.4%" title="acceptable: 0.34"></span><span class="p toxic" style="width:62.3%" title="toxic: 0.62"></span><span class="p spam" style="width:3.3%" title="spam: 0.03"></span></div><small>conf 0.26</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:85.2%" title="acceptable: 0.85"></span><span class="p toxic" style="width:9.8%" title="toxic: 0.10"></span><span class="p spam" style="width:5.0%" title="spam: 0.05"></span></div><small>conf 0.61</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="77" data-label="acceptable" data-conf="0.8968" data-low="0" data-dis="0">
+  <td class="id">77</td>
+  <td class="text"><div class="meta">Gaurav Pandey · Submission &amp; grading · 2026-10-19 10:30</div>
+    <div class="body">Sir, what happens if our deployed link stops working after submission (free hosting expires)? Will we lose marks?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.5%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.5%" title="toxic: 0.02"></span><span class="p spam" style="width:2.0%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.1%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.6%" title="toxic: 0.04"></span><span class="p spam" style="width:4.3%" title="spam: 0.04"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="78" data-label="acceptable" data-conf="0.8277" data-low="0" data-dis="0">
+  <td class="id">78</td>
+  <td class="text"><div class="meta">Kavya Pillai · Submission &amp; grading · 2026-10-19 10:50</div>
+    <div class="body">I shared a short screen recording as a backup in case the link fails. Maybe others should do the same.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.0%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.2%" title="toxic: 0.02"></span><span class="p spam" style="width:3.9%" title="spam: 0.04"></span></div><small>conf 0.83</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.7%" title="acceptable: 0.93"></span><span class="p toxic" style="width:2.5%" title="toxic: 0.02"></span><span class="p spam" style="width:4.9%" title="spam: 0.05"></span></div><small>conf 0.79</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="79" data-label="spam" data-conf="0.9157" data-low="0" data-dis="0">
+  <td class="id">79</td>
+  <td class="text"><div class="meta">InstaGrowth Services · General · 2026-10-19 12:00</div>
+    <div class="body">👉 Get 10,000 Instagram followers in 1 day 👈 Real &amp; active. Best for students starting tech pages. WhatsApp 90000 67890</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:2.0%" title="acceptable: 0.02"></span><span class="p toxic" style="width:0.9%" title="toxic: 0.01"></span><span class="p spam" style="width:97.1%" title="spam: 0.97"></span></div><small>conf 0.92</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:2.7%" title="acceptable: 0.03"></span><span class="p toxic" style="width:2.5%" title="toxic: 0.02"></span><span class="p spam" style="width:94.8%" title="spam: 0.95"></span></div><small>conf 0.85</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="80" data-label="acceptable" data-conf="0.9222" data-low="0" data-dis="0">
+  <td class="id">80</td>
+  <td class="text"><div class="meta">Kunal Bhatia · General · 2026-10-19 21:40</div>
+    <div class="body">I&#x27;m struggling honestly. Everyone is posting cool apps and mine barely works. Is it okay to submit something simple if the reflection is honest?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:97.4%" title="acceptable: 0.97"></span><span class="p toxic" style="width:1.2%" title="toxic: 0.01"></span><span class="p spam" style="width:1.5%" title="spam: 0.01"></span></div><small>conf 0.92</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.5%" title="acceptable: 0.94"></span><span class="p toxic" style="width:3.1%" title="toxic: 0.03"></span><span class="p spam" style="width:3.4%" title="spam: 0.03"></span></div><small>conf 0.81</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="81" data-label="acceptable" data-conf="0.8677" data-low="0" data-dis="0">
+  <td class="id">81</td>
+  <td class="text"><div class="meta">Neha Kapoor · General · 2026-10-19 22:05</div>
+    <div class="body">Absolutely okay. Sir said in class that the reflection about what failed counts a lot. Don&#x27;t stress, simple + honest &gt; fancy + copied.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.4%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.1%" title="toxic: 0.02"></span><span class="p spam" style="width:2.4%" title="spam: 0.02"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.8%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.1%" title="toxic: 0.02"></span><span class="p spam" style="width:3.1%" title="spam: 0.03"></span></div><small>conf 0.85</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="82" data-label="acceptable" data-conf="0.7955" data-low="0" data-dis="0">
+  <td class="id">82</td>
+  <td class="text"><div class="meta">Kunal Bhatia · General · 2026-10-19 22:20</div>
+    <div class="body">Thank you Neha, that really helps 🙂</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.8%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.4%" title="toxic: 0.03"></span><span class="p spam" style="width:3.8%" title="spam: 0.04"></span></div><small>conf 0.80</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:86.8%" title="acceptable: 0.87"></span><span class="p toxic" style="width:2.1%" title="toxic: 0.02"></span><span class="p spam" style="width:11.2%" title="spam: 0.11"></span></div><small>conf 0.65</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="83" data-label="toxic" data-conf="0.2326" data-low="1" data-dis="1">
+  <td class="id">83</td>
+  <td class="text"><div class="meta">Saurabh Yadav · General · 2026-10-19 22:48</div>
+    <div class="body">lol Kunal still crying about his project. Maybe engineering isn&#x27;t for you bro, try BA.</div><div class="flags"><span class="flag">low confidence</span><span class="flag dis">models disagree</span></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:45.6%" title="acceptable: 0.46"></span><span class="p toxic" style="width:52.9%" title="toxic: 0.53"></span><span class="p spam" style="width:1.5%" title="spam: 0.01"></span></div><small>conf 0.23</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:80.0%" title="acceptable: 0.80"></span><span class="p toxic" style="width:18.4%" title="toxic: 0.18"></span><span class="p spam" style="width:1.6%" title="spam: 0.02"></span></div><small>conf 0.51</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="84" data-label="acceptable" data-conf="0.8683" data-low="0" data-dis="0">
+  <td class="id">84</td>
+  <td class="text"><div class="meta">Sonu Kumar · Doubts · 2026-10-20 09:30</div>
+    <div class="body">Doubt: Claude gave different code for the same prompt twice. Which one should we submit, and should we mention it?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.0%" title="toxic: 0.02"></span><span class="p spam" style="width:2.6%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:90.6%" title="acceptable: 0.91"></span><span class="p toxic" style="width:4.2%" title="toxic: 0.04"></span><span class="p spam" style="width:5.1%" title="spam: 0.05"></span></div><small>conf 0.74</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="85" data-label="acceptable" data-conf="0.8515" data-low="0" data-dis="0">
+  <td class="id">85</td>
+  <td class="text"><div class="meta">Meera Krishnan · Doubts · 2026-10-20 09:55</div>
+    <div class="body">Submit the one you tested and understand. Mentioning the variation in your reflection is actually a good insight.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.8%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.2%" title="toxic: 0.02"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.85</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.8%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.7%" title="toxic: 0.03"></span><span class="p spam" style="width:3.5%" title="spam: 0.03"></span></div><small>conf 0.82</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="86" data-label="spam" data-conf="0.8560" data-low="0" data-dis="0">
+  <td class="id">86</td>
+  <td class="text"><div class="meta">Work From Home Jobs · General · 2026-10-20 11:00</div>
+    <div class="body">Part time job for students: typing work, ₹800/day, no target. Registration fee only ₹299. Reply &quot;INTERESTED&quot; with your number.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.6%" title="acceptable: 0.04"></span><span class="p toxic" style="width:1.4%" title="toxic: 0.01"></span><span class="p spam" style="width:95.0%" title="spam: 0.95"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:4.3%" title="acceptable: 0.04"></span><span class="p toxic" style="width:3.4%" title="toxic: 0.03"></span><span class="p spam" style="width:92.3%" title="spam: 0.92"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="87" data-label="acceptable" data-conf="0.8943" data-low="0" data-dis="0">
+  <td class="id">87</td>
+  <td class="text"><div class="meta">Aditya Kulkarni · Doubts · 2026-10-20 12:20</div>
+    <div class="body">Can we work on an existing personal project and extend it with AI, or must it be new?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.4%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.5%" title="toxic: 0.01"></span><span class="p spam" style="width:2.1%" title="spam: 0.02"></span></div><small>conf 0.89</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.2%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.4%" title="toxic: 0.03"></span><span class="p spam" style="width:4.3%" title="spam: 0.04"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="88" data-label="acceptable" data-conf="0.6619" data-low="0" data-dis="0">
+  <td class="id">88</td>
+  <td class="text"><div class="meta">Saurabh Yadav · Share your artifacts · 2026-10-20 13:10</div>
+    <div class="body">Ankit, sorry for that comment about your app and your GATE score, it was uncalled for. The app is actually good, just that one bug.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:87.4%" title="acceptable: 0.87"></span><span class="p toxic" style="width:9.5%" title="toxic: 0.10"></span><span class="p spam" style="width:3.0%" title="spam: 0.03"></span></div><small>conf 0.66</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:93.7%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.7%" title="toxic: 0.03"></span><span class="p spam" style="width:3.6%" title="spam: 0.04"></span></div><small>conf 0.82</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="89" data-label="acceptable" data-conf="0.8688" data-low="0" data-dis="0">
+  <td class="id">89</td>
+  <td class="text"><div class="meta">Ishita Banerjee · Share your artifacts · 2026-10-20 16:00</div>
+    <div class="body">Our college fest registration form artifact is live, please test and break it before Friday 🙏</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.5%" title="acceptable: 0.95"></span><span class="p toxic" style="width:1.8%" title="toxic: 0.02"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.2%" title="acceptable: 0.91"></span><span class="p toxic" style="width:1.0%" title="toxic: 0.01"></span><span class="p spam" style="width:7.9%" title="spam: 0.08"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="90" data-label="acceptable" data-conf="0.8586" data-low="0" data-dis="0">
+  <td class="id">90</td>
+  <td class="text"><div class="meta">Riya Thomas · Share your artifacts · 2026-10-20 16:35</div>
+    <div class="body">Found a bug: entering an emoji in the name field crashes the confirmation page. 😅</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.1%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.3%" title="toxic: 0.02"></span><span class="p spam" style="width:2.6%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:97.2%" title="acceptable: 0.97"></span><span class="p toxic" style="width:0.9%" title="toxic: 0.01"></span><span class="p spam" style="width:1.9%" title="spam: 0.02"></span></div><small>conf 0.92</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="91" data-label="toxic" data-conf="0.3320" data-low="1" data-dis="0">
+  <td class="id">91</td>
+  <td class="text"><div class="meta">Vikram Singh · Share your artifacts · 2026-10-20 17:02</div>
+    <div class="body">Who made this garbage form? Typical mechanical branch people trying to code. Stick to your lathe machines 😂</div><div class="flags"><span class="flag">low confidence</span></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:30.1%" title="acceptable: 0.30"></span><span class="p toxic" style="width:68.1%" title="toxic: 0.68"></span><span class="p spam" style="width:1.8%" title="spam: 0.02"></span></div><small>conf 0.33</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:29.0%" title="acceptable: 0.29"></span><span class="p toxic" style="width:65.9%" title="toxic: 0.66"></span><span class="p spam" style="width:5.1%" title="spam: 0.05"></span></div><small>conf 0.28</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="92" data-label="acceptable" data-conf="0.8770" data-low="0" data-dis="0">
+  <td class="id">92</td>
+  <td class="text"><div class="meta">Shruti Deshpande · Doubts · 2026-10-21 10:10</div>
+    <div class="body">Does using AI-generated images in the artifact need attribution too?</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.8%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:2.5%" title="spam: 0.03"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.4%" title="acceptable: 0.91"></span><span class="p toxic" style="width:3.6%" title="toxic: 0.04"></span><span class="p spam" style="width:5.0%" title="spam: 0.05"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="93" data-label="acceptable" data-conf="0.8588" data-low="0" data-dis="0">
+  <td class="id">93</td>
+  <td class="text"><div class="meta">Siddharth Rao · General · 2026-10-21 11:30</div>
+    <div class="body">Will there be a session on how to evaluate AI-generated code for security issues? Seems important for the next assignment.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.1%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.2%" title="toxic: 0.02"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.86</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.8%" title="acceptable: 0.93"></span><span class="p toxic" style="width:3.4%" title="toxic: 0.03"></span><span class="p spam" style="width:3.8%" title="spam: 0.04"></span></div><small>conf 0.80</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="94" data-label="spam" data-conf="0.8764" data-low="0" data-dis="0">
+  <td class="id">94</td>
+  <td class="text"><div class="meta">cs307_solutions · General · 2026-10-21 12:00</div>
+    <div class="body">CS307 complete solved assignments + viva answers available!! 100% working code. DM on telegram @cs307_solutions_hub. Pay after delivery.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.5%" title="acceptable: 0.03"></span><span class="p toxic" style="width:0.8%" title="toxic: 0.01"></span><span class="p spam" style="width:95.7%" title="spam: 0.96"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.1%" title="acceptable: 0.03"></span><span class="p toxic" style="width:1.9%" title="toxic: 0.02"></span><span class="p spam" style="width:95.0%" title="spam: 0.95"></span></div><small>conf 0.86</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="95" data-label="acceptable" data-conf="0.8660" data-low="0" data-dis="0">
+  <td class="id">95</td>
+  <td class="text"><div class="meta">Ritika Sen · General · 2026-10-21 14:15</div>
+    <div class="body">Sir, please consider allowing pair submissions next time, 4-member groups are hard to coordinate.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:95.4%" title="acceptable: 0.95"></span><span class="p toxic" style="width:2.3%" title="toxic: 0.02"></span><span class="p spam" style="width:2.3%" title="spam: 0.02"></span></div><small>conf 0.87</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.3%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.7%" title="toxic: 0.03"></span><span class="p spam" style="width:2.9%" title="spam: 0.03"></span></div><small>conf 0.84</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="96" data-label="acceptable" data-conf="0.8961" data-low="0" data-dis="0">
+  <td class="id">96</td>
+  <td class="text"><div class="meta">Omkar Jadhav · Submission &amp; grading · 2026-10-21 23:58</div>
+    <div class="body">Finally submitted at 11:57 PM 😂 Never doing last-minute again (I say this every semester).</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.4%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.7%" title="toxic: 0.02"></span><span class="p spam" style="width:1.9%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:92.3%" title="acceptable: 0.92"></span><span class="p toxic" style="width:3.7%" title="toxic: 0.04"></span><span class="p spam" style="width:4.0%" title="spam: 0.04"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="97" data-label="toxic" data-conf="0.8995" data-low="0" data-dis="0">
+  <td class="id">97</td>
+  <td class="text"><div class="meta">Rahul Chauhan · Doubts · 2026-10-22 10:05</div>
+    <div class="body">If you can&#x27;t even set up an API key you shouldn&#x27;t be in CSE. Stop spamming the forum with your stupid doubts, dumbo.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:2.2%" title="acceptable: 0.02"></span><span class="p toxic" style="width:96.6%" title="toxic: 0.97"></span><span class="p spam" style="width:1.2%" title="spam: 0.01"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge toxic">toxic</span><div class="bar"><span class="p acceptable" style="width:4.4%" title="acceptable: 0.04"></span><span class="p toxic" style="width:92.1%" title="toxic: 0.92"></span><span class="p spam" style="width:3.5%" title="spam: 0.04"></span></div><small>conf 0.78</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="98" data-label="acceptable" data-conf="0.8358" data-low="0" data-dis="0">
+  <td class="id">98</td>
+  <td class="text"><div class="meta">Divya Hegde · General · 2026-10-22 18:30</div>
+    <div class="body">Thanks to everyone who answered doubts here, this thread was more useful than the lectures honestly 😄</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:94.3%" title="acceptable: 0.94"></span><span class="p toxic" style="width:2.4%" title="toxic: 0.02"></span><span class="p spam" style="width:3.3%" title="spam: 0.03"></span></div><small>conf 0.84</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.2%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.1%" title="toxic: 0.01"></span><span class="p spam" style="width:2.7%" title="spam: 0.03"></span></div><small>conf 0.89</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="99" data-label="spam" data-conf="0.8775" data-low="0" data-dis="0">
+  <td class="id">99</td>
+  <td class="text"><div class="meta">Raju Startup · General · 2026-10-23 12:00</div>
+    <div class="body">Hey guys check out my startup app, we are giving ₹100 Paytm cash for every signup using my referral code RAJU100 😊 Link: refer-n-earn.app/RAJU100</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.5%" title="acceptable: 0.04"></span><span class="p toxic" style="width:0.7%" title="toxic: 0.01"></span><span class="p spam" style="width:95.8%" title="spam: 0.96"></span></div><small>conf 0.88</small></td><td class="lab"><span class="badge spam">spam</span><div class="bar"><span class="p acceptable" style="width:3.6%" title="acceptable: 0.04"></span><span class="p toxic" style="width:2.0%" title="toxic: 0.02"></span><span class="p spam" style="width:94.4%" title="spam: 0.94"></span></div><small>conf 0.84</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr>
+<tr class="row" tabindex="-1" data-id="100" data-label="acceptable" data-conf="0.8964" data-low="0" data-dis="0">
+  <td class="id">100</td>
+  <td class="text"><div class="meta">Shreya Patil · General · 2026-10-25 10:40</div>
+    <div class="body">Ma&#x27;am, any update on when the next assignment will be released? Want to plan around mid-sems.</div><div class="flags"></div></td>
+  <td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:96.5%" title="acceptable: 0.96"></span><span class="p toxic" style="width:1.6%" title="toxic: 0.02"></span><span class="p spam" style="width:2.0%" title="spam: 0.02"></span></div><small>conf 0.90</small></td><td class="lab"><span class="badge acceptable">acceptable</span><div class="bar"><span class="p acceptable" style="width:91.6%" title="acceptable: 0.92"></span><span class="p toxic" style="width:4.0%" title="toxic: 0.04"></span><span class="p spam" style="width:4.5%" title="spam: 0.04"></span></div><small>conf 0.76</small></td>
+  <td class="review">
+    <div class="picks"><button type="button" class="pick agree" data-v="agree">Clef is right</button><button type="button" class="pick" data-v="acceptable">acceptable</button><button type="button" class="pick" data-v="toxic">toxic</button><button type="button" class="pick" data-v="spam">spam</button></div>
+    <label class="bl"><input type="checkbox" class="border"> borderline</label>
+    <textarea class="why" rows="2" placeholder="Why? (needed if you disagree or it's borderline)"></textarea>
+  </td>
+</tr></tbody></table>
+</div>
+<script>
+const KEY = 'clef-review-v2', MODEL = 'clef';
+const LABELS = ['acceptable', 'toxic', 'spam'];
+const tbody = document.getElementById('rows');
+const rows = [...tbody.querySelectorAll('tr')];
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+const store = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} };
+const get = r => saved[r.dataset.id] || { mine: '', border: false, why: '' };
+const isChanged = r => { const s = get(r); return (s.mine && s.mine !== r.dataset.label) || s.border; };
+const needsWhy = r => isChanged(r) && !get(r).why.trim();
+
+function paint(r) {
+  const s = get(r);
+  r.querySelectorAll('.pick').forEach(b => {
+    const v = b.dataset.v === 'agree' ? r.dataset.label : b.dataset.v;
+    b.classList.toggle('on', !!s.mine && (b.dataset.v === 'agree' ? s.mine === r.dataset.label : s.mine === v && v !== r.dataset.label));
+  });
+  r.querySelector('.border').checked = !!s.border;
+  const why = r.querySelector('.why');
+  if (document.activeElement !== why) why.value = s.why || '';
+  why.classList.toggle('need', needsWhy(r));
+  r.classList.toggle('done', !!s.mine);
+  r.classList.toggle('changed', isChanged(r));
+}
+function refresh() {
+  const done = rows.filter(r => get(r).mine).length, marked = rows.filter(isChanged).length;
+  document.getElementById('progress').textContent = done + '/' + rows.length + ' reviewed · ' + marked + ' marked';
+  document.querySelector('#meter span').style.width = (100 * done / rows.length) + '%';
+}
+function update(r, patch) {
+  saved[r.dataset.id] = Object.assign({}, get(r), patch);
+  store(); paint(r); refresh();
+}
+function choose(r, v) {
+  if (v === 'agree') {
+    if (document.body.classList.contains('blind')) return;
+    v = r.dataset.label;
+  }
+  update(r, { mine: v });
+  if (v === r.dataset.label && !get(r).border) move(1);
+  else r.querySelector('.why').focus();
+}
+
+let cur = null;
+const visible = () => [...tbody.querySelectorAll('tr:not(.hidden)')];
+function setCur(r, scroll) {
+  if (cur) cur.classList.remove('cur');
+  cur = r || null;
+  if (!cur) return;
+  cur.classList.add('cur');
+  if (scroll) cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function move(step) {
+  const v = visible(); if (!v.length) return;
+  const i = cur ? v.indexOf(cur) : -1;
+  setCur(v[Math.max(0, Math.min(v.length - 1, i + step))], true);
+}
+function nextTodo() {
+  const v = visible(), i = cur ? v.indexOf(cur) : -1;
+  const next = v.slice(i + 1).concat(v.slice(0, i + 1)).find(r => !get(r).mine);
+  if (next) setCur(next, true);
+}
+
+rows.forEach(r => {
+  paint(r);
+  r.querySelectorAll('.pick').forEach(b => b.addEventListener('click', () => { setCur(r); choose(r, b.dataset.v); }));
+  r.querySelector('.border').addEventListener('change', e => { setCur(r); update(r, { border: e.target.checked }); });
+  r.querySelector('.why').addEventListener('input', e => { setCur(r); update(r, { why: e.target.value }); });
+  r.addEventListener('click', e => { if (!e.target.closest('button, input, textarea, label')) setCur(r); });
+});
+refresh();
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA') { if (e.key === 'Escape') { e.target.blur(); cur && cur.focus(); } return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'j') return move(1);
+  if (k === 'k') return move(-1);
+  if (k === 'n') return nextTodo();
+  if (!cur) return;
+  if (k === 'a') choose(cur, 'agree');
+  else if (k === '1' || k === '2' || k === '3') choose(cur, LABELS[+k - 1]);
+  else if (k === 'b') update(cur, { border: !get(cur).border });
+  else if (k === 'w' || k === 'enter') { e.preventDefault(); cur.querySelector('.why').focus(); }
+});
+
+document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  rows.forEach(r => r.classList.toggle('hidden', !(f === 'all' || r.dataset.label === f
+    || (f === 'todo' && !get(r).mine) || (f === 'low' && r.dataset.low === '1')
+    || (f === 'dis' && r.dataset.dis === '1') || (f === 'changed' && isChanged(r)))));
+});
+let byConf = false;
+document.getElementById('sort').onclick = e => {
+  byConf = !byConf;
+  e.target.textContent = byConf ? 'Sort: least confident first' : 'Sort: by id';
+  const key = r => byConf ? +r.dataset.conf : +r.dataset.id;
+  rows.slice().sort((a, b) => key(a) - key(b)).forEach(r => tbody.appendChild(r));
+};
+document.getElementById('blind').onclick = e => {
+  const on = document.body.classList.toggle('blind');
+  e.target.textContent = on ? 'Show labels' : 'Hide labels';
+};
+document.getElementById('export').onclick = () => {
+  const todo = rows.filter(r => !get(r).mine).map(r => r.dataset.id).sort((a, b) => a - b);
+  const noWhy = rows.filter(needsWhy).map(r => r.dataset.id).sort((a, b) => a - b);
+  const warn = [];
+  if (todo.length) warn.push(todo.length + ' comment(s) not reviewed yet: ' + todo.slice(0, 15).join(', ') + (todo.length > 15 ? '…' : ''));
+  if (noWhy.length) warn.push('No reason written for: ' + noWhy.join(', '));
+  if (warn.length && !confirm(warn.join('\n') + '\n\nDownload anyway?')) return;
+  const marked = rows.filter(isChanged).sort((a, b) => a.dataset.id - b.dataset.id);
+  let md = "# Mistakes in Clef's labels\n\nModel reviewed: " + MODEL + '\n';
+  marked.forEach(r => {
+    const s = get(r), clef = r.dataset.label, mine = s.mine || clef;
+    const note = s.border ? (mine === clef ? " (borderline, I kept Clef's label)" : ' (borderline)') : '';
+    const text = r.querySelector('.body').textContent.replace(/\s+/g, ' ').trim();
+    md += '\n## Comment ' + r.dataset.id + note + '\n\n> ' + text + '\n\n';
+    md += '- Clef: ' + clef + '\n- Mine: ' + mine + '\n- Why: ' + (s.why || '').trim().replace(/\s*\n\s*/g, ' ') + '\n';
+  });
+  if (!marked.length) md += '\nI found no mistakes.\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
+  a.download = 'MISTAKES.md'; a.click();
+};
+</script>
+</body></html>

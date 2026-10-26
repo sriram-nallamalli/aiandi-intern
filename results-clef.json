@@ -1,0 +1,1002 @@
+{
+ "1": {
+  "choice": "acceptable",
+  "confidence": 0.8812,
+  "probabilities": {
+   "acceptable": 0.9592,
+   "spam": 0.0224,
+   "toxic": 0.0184
+  },
+  "type": "choice"
+ },
+ "10": {
+  "choice": "spam",
+  "confidence": 0.7912,
+  "probabilities": {
+   "acceptable": 0.0626,
+   "spam": 0.9256,
+   "toxic": 0.0118
+  },
+  "type": "choice"
+ },
+ "100": {
+  "choice": "acceptable",
+  "confidence": 0.8964,
+  "probabilities": {
+   "acceptable": 0.9645,
+   "spam": 0.0198,
+   "toxic": 0.0157
+  },
+  "type": "choice"
+ },
+ "11": {
+  "choice": "acceptable",
+  "confidence": 0.8701,
+  "probabilities": {
+   "acceptable": 0.9552,
+   "spam": 0.0258,
+   "toxic": 0.019
+  },
+  "type": "choice"
+ },
+ "12": {
+  "choice": "acceptable",
+  "confidence": 0.8614,
+  "probabilities": {
+   "acceptable": 0.9521,
+   "spam": 0.0286,
+   "toxic": 0.0193
+  },
+  "type": "choice"
+ },
+ "13": {
+  "choice": "toxic",
+  "confidence": 0.8992,
+  "probabilities": {
+   "acceptable": 0.0247,
+   "spam": 0.0098,
+   "toxic": 0.9655
+  },
+  "type": "choice"
+ },
+ "14": {
+  "choice": "acceptable",
+  "confidence": 0.9028,
+  "probabilities": {
+   "acceptable": 0.9668,
+   "spam": 0.0171,
+   "toxic": 0.0161
+  },
+  "type": "choice"
+ },
+ "15": {
+  "choice": "acceptable",
+  "confidence": 0.9026,
+  "probabilities": {
+   "acceptable": 0.9667,
+   "spam": 0.0202,
+   "toxic": 0.0131
+  },
+  "type": "choice"
+ },
+ "16": {
+  "choice": "acceptable",
+  "confidence": 0.8785,
+  "probabilities": {
+   "acceptable": 0.9582,
+   "spam": 0.0238,
+   "toxic": 0.018
+  },
+  "type": "choice"
+ },
+ "17": {
+  "choice": "spam",
+  "confidence": 0.8394,
+  "probabilities": {
+   "acceptable": 0.046,
+   "spam": 0.9438,
+   "toxic": 0.0102
+  },
+  "type": "choice"
+ },
+ "18": {
+  "choice": "acceptable",
+  "confidence": 0.8912,
+  "probabilities": {
+   "acceptable": 0.9627,
+   "spam": 0.0204,
+   "toxic": 0.0169
+  },
+  "type": "choice"
+ },
+ "19": {
+  "choice": "toxic",
+  "confidence": 0.5477,
+  "probabilities": {
+   "acceptable": 0.1669,
+   "spam": 0.0143,
+   "toxic": 0.8188
+  },
+  "type": "choice"
+ },
+ "2": {
+  "choice": "acceptable",
+  "confidence": 0.8772,
+  "probabilities": {
+   "acceptable": 0.9577,
+   "spam": 0.0257,
+   "toxic": 0.0166
+  },
+  "type": "choice"
+ },
+ "20": {
+  "choice": "acceptable",
+  "confidence": 0.7872,
+  "probabilities": {
+   "acceptable": 0.9248,
+   "spam": 0.0394,
+   "toxic": 0.0358
+  },
+  "type": "choice"
+ },
+ "21": {
+  "choice": "acceptable",
+  "confidence": 0.8728,
+  "probabilities": {
+   "acceptable": 0.9562,
+   "spam": 0.0228,
+   "toxic": 0.021
+  },
+  "type": "choice"
+ },
+ "22": {
+  "choice": "acceptable",
+  "confidence": 0.9102,
+  "probabilities": {
+   "acceptable": 0.9694,
+   "spam": 0.0171,
+   "toxic": 0.0135
+  },
+  "type": "choice"
+ },
+ "23": {
+  "choice": "acceptable",
+  "confidence": 0.8693,
+  "probabilities": {
+   "acceptable": 0.9548,
+   "spam": 0.029,
+   "toxic": 0.0162
+  },
+  "type": "choice"
+ },
+ "24": {
+  "choice": "spam",
+  "confidence": 0.6943,
+  "probabilities": {
+   "acceptable": 0.1016,
+   "spam": 0.8864,
+   "toxic": 0.012
+  },
+  "type": "choice"
+ },
+ "25": {
+  "choice": "acceptable",
+  "confidence": 0.8843,
+  "probabilities": {
+   "acceptable": 0.9602,
+   "spam": 0.023,
+   "toxic": 0.0168
+  },
+  "type": "choice"
+ },
+ "26": {
+  "choice": "acceptable",
+  "confidence": 0.7936,
+  "probabilities": {
+   "acceptable": 0.9271,
+   "spam": 0.046,
+   "toxic": 0.0269
+  },
+  "type": "choice"
+ },
+ "27": {
+  "choice": "toxic",
+  "confidence": 0.2604,
+  "probabilities": {
+   "acceptable": 0.3722,
+   "spam": 0.0212,
+   "toxic": 0.6066
+  },
+  "type": "choice"
+ },
+ "28": {
+  "choice": "acceptable",
+  "confidence": 0.8633,
+  "probabilities": {
+   "acceptable": 0.9527,
+   "spam": 0.0282,
+   "toxic": 0.0191
+  },
+  "type": "choice"
+ },
+ "29": {
+  "choice": "acceptable",
+  "confidence": 0.8863,
+  "probabilities": {
+   "acceptable": 0.961,
+   "spam": 0.0175,
+   "toxic": 0.0215
+  },
+  "type": "choice"
+ },
+ "3": {
+  "choice": "spam",
+  "confidence": 0.9336,
+  "probabilities": {
+   "acceptable": 0.0161,
+   "spam": 0.9775,
+   "toxic": 0.0064
+  },
+  "type": "choice"
+ },
+ "30": {
+  "choice": "acceptable",
+  "confidence": 0.8629,
+  "probabilities": {
+   "acceptable": 0.9525,
+   "spam": 0.0134,
+   "toxic": 0.0341
+  },
+  "type": "choice"
+ },
+ "31": {
+  "choice": "toxic",
+  "confidence": 0.8973,
+  "probabilities": {
+   "acceptable": 0.0273,
+   "spam": 0.008,
+   "toxic": 0.9647
+  },
+  "type": "choice"
+ },
+ "32": {
+  "choice": "acceptable",
+  "confidence": 0.8903,
+  "probabilities": {
+   "acceptable": 0.9624,
+   "spam": 0.022,
+   "toxic": 0.0156
+  },
+  "type": "choice"
+ },
+ "33": {
+  "choice": "spam",
+  "confidence": 0.83,
+  "probabilities": {
+   "acceptable": 0.044,
+   "spam": 0.9405,
+   "toxic": 0.0155
+  },
+  "type": "choice"
+ },
+ "34": {
+  "choice": "acceptable",
+  "confidence": 0.8854,
+  "probabilities": {
+   "acceptable": 0.9606,
+   "spam": 0.0213,
+   "toxic": 0.0181
+  },
+  "type": "choice"
+ },
+ "35": {
+  "choice": "acceptable",
+  "confidence": 0.8564,
+  "probabilities": {
+   "acceptable": 0.9503,
+   "spam": 0.027,
+   "toxic": 0.0227
+  },
+  "type": "choice"
+ },
+ "36": {
+  "choice": "acceptable",
+  "confidence": 0.867,
+  "probabilities": {
+   "acceptable": 0.9541,
+   "spam": 0.0273,
+   "toxic": 0.0186
+  },
+  "type": "choice"
+ },
+ "37": {
+  "choice": "acceptable",
+  "confidence": 0.7762,
+  "probabilities": {
+   "acceptable": 0.9205,
+   "spam": 0.0519,
+   "toxic": 0.0276
+  },
+  "type": "choice"
+ },
+ "38": {
+  "choice": "acceptable",
+  "confidence": 0.886,
+  "probabilities": {
+   "acceptable": 0.9609,
+   "spam": 0.0218,
+   "toxic": 0.0173
+  },
+  "type": "choice"
+ },
+ "39": {
+  "choice": "acceptable",
+  "confidence": 0.8431,
+  "probabilities": {
+   "acceptable": 0.9454,
+   "spam": 0.0322,
+   "toxic": 0.0224
+  },
+  "type": "choice"
+ },
+ "4": {
+  "choice": "acceptable",
+  "confidence": 0.8832,
+  "probabilities": {
+   "acceptable": 0.9599,
+   "spam": 0.0237,
+   "toxic": 0.0164
+  },
+  "type": "choice"
+ },
+ "40": {
+  "choice": "spam",
+  "confidence": 0.8724,
+  "probabilities": {
+   "acceptable": 0.0348,
+   "spam": 0.9558,
+   "toxic": 0.0094
+  },
+  "type": "choice"
+ },
+ "41": {
+  "choice": "toxic",
+  "confidence": 0.5213,
+  "probabilities": {
+   "acceptable": 0.167,
+   "spam": 0.0253,
+   "toxic": 0.8077
+  },
+  "type": "choice"
+ },
+ "42": {
+  "choice": "acceptable",
+  "confidence": 0.8816,
+  "probabilities": {
+   "acceptable": 0.9593,
+   "spam": 0.0228,
+   "toxic": 0.0179
+  },
+  "type": "choice"
+ },
+ "43": {
+  "choice": "acceptable",
+  "confidence": 0.8127,
+  "probabilities": {
+   "acceptable": 0.9343,
+   "spam": 0.0349,
+   "toxic": 0.0308
+  },
+  "type": "choice"
+ },
+ "44": {
+  "choice": "acceptable",
+  "confidence": 0.8713,
+  "probabilities": {
+   "acceptable": 0.9556,
+   "spam": 0.0259,
+   "toxic": 0.0185
+  },
+  "type": "choice"
+ },
+ "45": {
+  "choice": "acceptable",
+  "confidence": 0.7852,
+  "probabilities": {
+   "acceptable": 0.9241,
+   "spam": 0.0391,
+   "toxic": 0.0368
+  },
+  "type": "choice"
+ },
+ "46": {
+  "choice": "spam",
+  "confidence": 0.9251,
+  "probabilities": {
+   "acceptable": 0.0173,
+   "spam": 0.9745,
+   "toxic": 0.0082
+  },
+  "type": "choice"
+ },
+ "47": {
+  "choice": "acceptable",
+  "confidence": 0.9046,
+  "probabilities": {
+   "acceptable": 0.9674,
+   "spam": 0.0171,
+   "toxic": 0.0155
+  },
+  "type": "choice"
+ },
+ "48": {
+  "choice": "toxic",
+  "confidence": 0.8528,
+  "probabilities": {
+   "acceptable": 0.0429,
+   "spam": 0.0084,
+   "toxic": 0.9487
+  },
+  "type": "choice"
+ },
+ "49": {
+  "choice": "acceptable",
+  "confidence": 0.8422,
+  "probabilities": {
+   "acceptable": 0.9451,
+   "spam": 0.0295,
+   "toxic": 0.0254
+  },
+  "type": "choice"
+ },
+ "5": {
+  "choice": "acceptable",
+  "confidence": 0.8431,
+  "probabilities": {
+   "acceptable": 0.9454,
+   "spam": 0.0311,
+   "toxic": 0.0235
+  },
+  "type": "choice"
+ },
+ "50": {
+  "choice": "acceptable",
+  "confidence": 0.8802,
+  "probabilities": {
+   "acceptable": 0.9588,
+   "spam": 0.0242,
+   "toxic": 0.017
+  },
+  "type": "choice"
+ },
+ "51": {
+  "choice": "acceptable",
+  "confidence": 0.8558,
+  "probabilities": {
+   "acceptable": 0.95,
+   "spam": 0.0302,
+   "toxic": 0.0198
+  },
+  "type": "choice"
+ },
+ "52": {
+  "choice": "acceptable",
+  "confidence": 0.87,
+  "probabilities": {
+   "acceptable": 0.9551,
+   "spam": 0.0276,
+   "toxic": 0.0173
+  },
+  "type": "choice"
+ },
+ "53": {
+  "choice": "acceptable",
+  "confidence": 0.8847,
+  "probabilities": {
+   "acceptable": 0.9604,
+   "spam": 0.0225,
+   "toxic": 0.0171
+  },
+  "type": "choice"
+ },
+ "54": {
+  "choice": "spam",
+  "confidence": 0.9379,
+  "probabilities": {
+   "acceptable": 0.0148,
+   "spam": 0.979,
+   "toxic": 0.0062
+  },
+  "type": "choice"
+ },
+ "55": {
+  "choice": "toxic",
+  "confidence": 0.6457,
+  "probabilities": {
+   "acceptable": 0.121,
+   "spam": 0.0135,
+   "toxic": 0.8655
+  },
+  "type": "choice"
+ },
+ "56": {
+  "choice": "acceptable",
+  "confidence": 0.9026,
+  "probabilities": {
+   "acceptable": 0.9667,
+   "spam": 0.0184,
+   "toxic": 0.0149
+  },
+  "type": "choice"
+ },
+ "57": {
+  "choice": "acceptable",
+  "confidence": 0.8449,
+  "probabilities": {
+   "acceptable": 0.9461,
+   "spam": 0.0345,
+   "toxic": 0.0194
+  },
+  "type": "choice"
+ },
+ "58": {
+  "choice": "acceptable",
+  "confidence": 0.893,
+  "probabilities": {
+   "acceptable": 0.9633,
+   "spam": 0.0211,
+   "toxic": 0.0156
+  },
+  "type": "choice"
+ },
+ "59": {
+  "choice": "acceptable",
+  "confidence": 0.8766,
+  "probabilities": {
+   "acceptable": 0.9575,
+   "spam": 0.0238,
+   "toxic": 0.0187
+  },
+  "type": "choice"
+ },
+ "6": {
+  "choice": "toxic",
+  "confidence": 0.7418,
+  "probabilities": {
+   "acceptable": 0.0829,
+   "spam": 0.0111,
+   "toxic": 0.906
+  },
+  "type": "choice"
+ },
+ "60": {
+  "choice": "acceptable",
+  "confidence": 0.849,
+  "probabilities": {
+   "acceptable": 0.9476,
+   "spam": 0.0271,
+   "toxic": 0.0253
+  },
+  "type": "choice"
+ },
+ "61": {
+  "choice": "toxic",
+  "confidence": 0.8554,
+  "probabilities": {
+   "acceptable": 0.0393,
+   "spam": 0.011,
+   "toxic": 0.9497
+  },
+  "type": "choice"
+ },
+ "62": {
+  "choice": "acceptable",
+  "confidence": 0.8604,
+  "probabilities": {
+   "acceptable": 0.9517,
+   "spam": 0.0281,
+   "toxic": 0.0202
+  },
+  "type": "choice"
+ },
+ "63": {
+  "choice": "spam",
+  "confidence": 0.8591,
+  "probabilities": {
+   "acceptable": 0.0387,
+   "spam": 0.951,
+   "toxic": 0.0103
+  },
+  "type": "choice"
+ },
+ "64": {
+  "choice": "acceptable",
+  "confidence": 0.8915,
+  "probabilities": {
+   "acceptable": 0.9628,
+   "spam": 0.0195,
+   "toxic": 0.0177
+  },
+  "type": "choice"
+ },
+ "65": {
+  "choice": "acceptable",
+  "confidence": 0.8358,
+  "probabilities": {
+   "acceptable": 0.9428,
+   "spam": 0.0328,
+   "toxic": 0.0244
+  },
+  "type": "choice"
+ },
+ "66": {
+  "choice": "acceptable",
+  "confidence": 0.8463,
+  "probabilities": {
+   "acceptable": 0.9466,
+   "spam": 0.0308,
+   "toxic": 0.0226
+  },
+  "type": "choice"
+ },
+ "67": {
+  "choice": "acceptable",
+  "confidence": 0.9031,
+  "probabilities": {
+   "acceptable": 0.9669,
+   "spam": 0.0173,
+   "toxic": 0.0158
+  },
+  "type": "choice"
+ },
+ "68": {
+  "choice": "acceptable",
+  "confidence": 0.8955,
+  "probabilities": {
+   "acceptable": 0.9642,
+   "spam": 0.0168,
+   "toxic": 0.019
+  },
+  "type": "choice"
+ },
+ "69": {
+  "choice": "toxic",
+  "confidence": 0.7803,
+  "probabilities": {
+   "acceptable": 0.0697,
+   "spam": 0.0091,
+   "toxic": 0.9212
+  },
+  "type": "choice"
+ },
+ "7": {
+  "choice": "acceptable",
+  "confidence": 0.8762,
+  "probabilities": {
+   "acceptable": 0.9574,
+   "spam": 0.0236,
+   "toxic": 0.019
+  },
+  "type": "choice"
+ },
+ "70": {
+  "choice": "acceptable",
+  "confidence": 0.8714,
+  "probabilities": {
+   "acceptable": 0.9556,
+   "spam": 0.0267,
+   "toxic": 0.0177
+  },
+  "type": "choice"
+ },
+ "71": {
+  "choice": "spam",
+  "confidence": 0.9215,
+  "probabilities": {
+   "acceptable": 0.0168,
+   "spam": 0.9733,
+   "toxic": 0.0099
+  },
+  "type": "choice"
+ },
+ "72": {
+  "choice": "acceptable",
+  "confidence": 0.8948,
+  "probabilities": {
+   "acceptable": 0.964,
+   "spam": 0.0195,
+   "toxic": 0.0165
+  },
+  "type": "choice"
+ },
+ "73": {
+  "choice": "acceptable",
+  "confidence": 0.8661,
+  "probabilities": {
+   "acceptable": 0.9537,
+   "spam": 0.0251,
+   "toxic": 0.0212
+  },
+  "type": "choice"
+ },
+ "74": {
+  "choice": "acceptable",
+  "confidence": 0.8957,
+  "probabilities": {
+   "acceptable": 0.9643,
+   "spam": 0.0199,
+   "toxic": 0.0158
+  },
+  "type": "choice"
+ },
+ "75": {
+  "choice": "acceptable",
+  "confidence": 0.8374,
+  "probabilities": {
+   "acceptable": 0.9434,
+   "spam": 0.0312,
+   "toxic": 0.0254
+  },
+  "type": "choice"
+ },
+ "76": {
+  "choice": "toxic",
+  "confidence": 0.2616,
+  "probabilities": {
+   "acceptable": 0.3441,
+   "spam": 0.0328,
+   "toxic": 0.6231
+  },
+  "type": "choice"
+ },
+ "77": {
+  "choice": "acceptable",
+  "confidence": 0.8968,
+  "probabilities": {
+   "acceptable": 0.9647,
+   "spam": 0.0202,
+   "toxic": 0.0151
+  },
+  "type": "choice"
+ },
+ "78": {
+  "choice": "acceptable",
+  "confidence": 0.8277,
+  "probabilities": {
+   "acceptable": 0.9398,
+   "spam": 0.0385,
+   "toxic": 0.0217
+  },
+  "type": "choice"
+ },
+ "79": {
+  "choice": "spam",
+  "confidence": 0.9157,
+  "probabilities": {
+   "acceptable": 0.0201,
+   "spam": 0.9712,
+   "toxic": 0.0087
+  },
+  "type": "choice"
+ },
+ "8": {
+  "choice": "acceptable",
+  "confidence": 0.8863,
+  "probabilities": {
+   "acceptable": 0.961,
+   "spam": 0.0207,
+   "toxic": 0.0183
+  },
+  "type": "choice"
+ },
+ "80": {
+  "choice": "acceptable",
+  "confidence": 0.9222,
+  "probabilities": {
+   "acceptable": 0.9735,
+   "spam": 0.0145,
+   "toxic": 0.012
+  },
+  "type": "choice"
+ },
+ "81": {
+  "choice": "acceptable",
+  "confidence": 0.8677,
+  "probabilities": {
+   "acceptable": 0.9543,
+   "spam": 0.0243,
+   "toxic": 0.0214
+  },
+  "type": "choice"
+ },
+ "82": {
+  "choice": "acceptable",
+  "confidence": 0.7955,
+  "probabilities": {
+   "acceptable": 0.9279,
+   "spam": 0.0382,
+   "toxic": 0.0339
+  },
+  "type": "choice"
+ },
+ "83": {
+  "choice": "toxic",
+  "confidence": 0.2326,
+  "probabilities": {
+   "acceptable": 0.456,
+   "spam": 0.0146,
+   "toxic": 0.5294
+  },
+  "type": "choice"
+ },
+ "84": {
+  "choice": "acceptable",
+  "confidence": 0.8683,
+  "probabilities": {
+   "acceptable": 0.9545,
+   "spam": 0.0259,
+   "toxic": 0.0196
+  },
+  "type": "choice"
+ },
+ "85": {
+  "choice": "acceptable",
+  "confidence": 0.8515,
+  "probabilities": {
+   "acceptable": 0.9485,
+   "spam": 0.029,
+   "toxic": 0.0225
+  },
+  "type": "choice"
+ },
+ "86": {
+  "choice": "spam",
+  "confidence": 0.856,
+  "probabilities": {
+   "acceptable": 0.0362,
+   "spam": 0.95,
+   "toxic": 0.0138
+  },
+  "type": "choice"
+ },
+ "87": {
+  "choice": "acceptable",
+  "confidence": 0.8943,
+  "probabilities": {
+   "acceptable": 0.9638,
+   "spam": 0.0215,
+   "toxic": 0.0147
+  },
+  "type": "choice"
+ },
+ "88": {
+  "choice": "acceptable",
+  "confidence": 0.6619,
+  "probabilities": {
+   "acceptable": 0.8744,
+   "spam": 0.0302,
+   "toxic": 0.0954
+  },
+  "type": "choice"
+ },
+ "89": {
+  "choice": "acceptable",
+  "confidence": 0.8688,
+  "probabilities": {
+   "acceptable": 0.9547,
+   "spam": 0.0271,
+   "toxic": 0.0182
+  },
+  "type": "choice"
+ },
+ "9": {
+  "choice": "acceptable",
+  "confidence": 0.8689,
+  "probabilities": {
+   "acceptable": 0.9548,
+   "spam": 0.0252,
+   "toxic": 0.02
+  },
+  "type": "choice"
+ },
+ "90": {
+  "choice": "acceptable",
+  "confidence": 0.8586,
+  "probabilities": {
+   "acceptable": 0.951,
+   "spam": 0.0263,
+   "toxic": 0.0227
+  },
+  "type": "choice"
+ },
+ "91": {
+  "choice": "toxic",
+  "confidence": 0.332,
+  "probabilities": {
+   "acceptable": 0.3014,
+   "spam": 0.0178,
+   "toxic": 0.6808
+  },
+  "type": "choice"
+ },
+ "92": {
+  "choice": "acceptable",
+  "confidence": 0.877,
+  "probabilities": {
+   "acceptable": 0.9576,
+   "spam": 0.0253,
+   "toxic": 0.0171
+  },
+  "type": "choice"
+ },
+ "93": {
+  "choice": "acceptable",
+  "confidence": 0.8588,
+  "probabilities": {
+   "acceptable": 0.9511,
+   "spam": 0.0271,
+   "toxic": 0.0218
+  },
+  "type": "choice"
+ },
+ "94": {
+  "choice": "spam",
+  "confidence": 0.8764,
+  "probabilities": {
+   "acceptable": 0.0349,
+   "spam": 0.9573,
+   "toxic": 0.0078
+  },
+  "type": "choice"
+ },
+ "95": {
+  "choice": "acceptable",
+  "confidence": 0.866,
+  "probabilities": {
+   "acceptable": 0.9537,
+   "spam": 0.0234,
+   "toxic": 0.0229
+  },
+  "type": "choice"
+ },
+ "96": {
+  "choice": "acceptable",
+  "confidence": 0.8961,
+  "probabilities": {
+   "acceptable": 0.9644,
+   "spam": 0.0187,
+   "toxic": 0.0169
+  },
+  "type": "choice"
+ },
+ "97": {
+  "choice": "toxic",
+  "confidence": 0.8995,
+  "probabilities": {
+   "acceptable": 0.0222,
+   "spam": 0.0122,
+   "toxic": 0.9656
+  },
+  "type": "choice"
+ },
+ "98": {
+  "choice": "acceptable",
+  "confidence": 0.8358,
+  "probabilities": {
+   "acceptable": 0.9428,
+   "spam": 0.0332,
+   "toxic": 0.024
+  },
+  "type": "choice"
+ },
+ "99": {
+  "choice": "spam",
+  "confidence": 0.8775,
+  "probabilities": {
+   "acceptable": 0.0354,
+   "spam": 0.9576,
+   "toxic": 0.007
+  },
+  "type": "choice"
+ }
+}
